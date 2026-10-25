@@ -4,7 +4,7 @@
  * ============================================================================
  * 
  * Academic Concept: Complete Binary Tree implemented as a 1D Array.
- * In a Max-Heap, every parent node is greater than or equal to its children:
+ * In a Max-Heap every parent node is greater than or equal to its children:
  * heap[parent].score >= heap[child].score
  * 
  * Mathematical Array Index Mapping:
