@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Droplet, Home, Heart, ShieldAlert, ArrowLeftRight, ChevronDown, MapPin, Building2 } from 'lucide-react';
+import { Droplet, Home, Heart, ArrowLeftRight, ChevronDown, MapPin, Building2 } from 'lucide-react';
 
 export default function PortalHeader({ pageTitle, breadcrumbs }) {
   const location = useLocation();
@@ -12,7 +12,6 @@ export default function PortalHeader({ pageTitle, breadcrumbs }) {
   const pageName = pageTitle || (
     currentPath === '/donor' ? 'Donor' :
     currentPath === '/requester' ? 'Requester' :
-    currentPath === '/admin' ? 'Admin' :
     currentPath === '/our-area' ? 'Our Area' :
     currentPath.startsWith('/blood-banks') ? 'Blood Banks' : 'Portal'
   );

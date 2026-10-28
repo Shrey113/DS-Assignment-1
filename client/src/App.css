@@ -3,7 +3,7 @@
    Organized into modular sheets under src/styles/:
    • landing.css       -> Landing page sections, hero, stats, faq, footer
    • portal-header.css -> Top title bar, breadcrumb logo, switch dropdown
-   • portal-pages.css  -> 100svh fixed portal layouts (Donor, Requester, Admin)
+   • portal-pages.css  -> 100svh fixed portal layouts (Donor, Requester)
    ═════════════════════════════════════════════════════════════════ */
 
 @import './styles/landing.css';
