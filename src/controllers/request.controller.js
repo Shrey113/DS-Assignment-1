@@ -1,6 +1,6 @@
 import { getPool } from '../config/db.js';
 import { MultilevelQueue, TRIAGE_TIERS } from '../core/data_structures/MultilevelQueue.js';
-import { MaxHeap } from '../core/data_structures/MaxHeap.js';
+import { ArrayStorage } from '../core/data_structures/ArrayStorage.js';
 
 // Stage 1: Persistent in-memory Multilevel Priority Queue (MLQ)
 const triageMLQ = new MultilevelQueue();
@@ -48,7 +48,7 @@ function getStockColumn(bg) {
  * 2. Dequeue top priority request (Handover to Matching Engine)
  * 3. Query candidate blood banks from MySQL
  * 4. Score candidates via Haversine Distance + Cold Storage Stock
- * 5. Organize into Binary Max-Heap and extract root match in O(1)
+ * 5. Store candidates in Array and select optimal match
  * 6. Store dispatched requisition in MySQL database
  * 
  * Handled by: POST /api/requests
@@ -111,9 +111,9 @@ export async function createRequest(req, res, next) {
     );
     const backupDonorsCount = donorCountRows[0]?.donor_count || 14;
 
-    // 5. Stage 2: Build Binary Max-Heap for optimal depot selection
-    console.log('[Dispatcher] 4. Building Binary Max-Heap and ranking candidates...');
-    const maxHeap = new MaxHeap();
+    // 5. Store candidate blood banks with calculated scores in simple array
+    console.log('[Dispatcher] 4. Scoring candidates and storing in simple array...');
+    const candidateStorage = new ArrayStorage();
     const stockCol = getStockColumn(activeReq.bloodGroup);
 
     for (const b of banks) {
@@ -125,7 +125,7 @@ export async function createRequest(req, res, next) {
         Number(b.longitude)
       );
 
-      // Algorithmic Scoring Formula:
+      // Scoring Formula:
       // + (availableUnits * 15) points
       // + 50 points full order fulfillment bonus
       // + 15 points Central Apex depot bonus
@@ -134,7 +134,7 @@ export async function createRequest(req, res, next) {
       const isCentral = b.bank_code === '01';
       const score = (availableUnits * 15) + (canFulfill ? 50 : 0) + (isCentral ? 15 : 0) - (distanceKm * 2.0);
 
-      maxHeap.insert({
+      candidateStorage.insert({
         score: Number(score.toFixed(1)),
         distanceKm,
         availableUnits,
@@ -142,9 +142,9 @@ export async function createRequest(req, res, next) {
       });
     }
 
-    // 6. Direct Root Node Retrieval (O(1) Constant Time)
-    const topMatch = maxHeap.peek();
-    console.log(`[Dispatcher] 5. Max-Heap match: ${topMatch.bank.name} (Score: ${topMatch.score}, Distance: ${topMatch.distanceKm} km)`);
+    // 6. Retrieve best matched blood bank from array
+    const topMatch = candidateStorage.peek();
+    console.log(`[Dispatcher] 5. Optimal matched depot: ${topMatch.bank.name} (Score: ${topMatch.score}, Distance: ${topMatch.distanceKm} km)`);
 
     // 7. Save requisition record to MySQL requests table
     const insertSQL = `

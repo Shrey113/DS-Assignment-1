@@ -217,7 +217,7 @@ export default function RequesterPage() {
                   </span>
                 </div>
 
-                {/* Algorithmic Max-Heap Match Details */}
+                {/* Optimal Depot Match Details */}
                 <div style={{
                   background: '#F8FAFC',
                   border: '1px solid #E2E8F0',
@@ -229,7 +229,7 @@ export default function RequesterPage() {
                   fontSize: '0.78rem'
                 }}>
                   <div>
-                    <span style={{ fontWeight: '700', color: '#1E293B' }}>Max-Heap Root Node: </span>
+                    <span style={{ fontWeight: '700', color: '#1E293B' }}>Optimal Matched Depot: </span>
                     <span style={{ color: '#0284C7', fontWeight: '800' }}>Score {dispatchResult.matchedDepot?.matchScore} pts</span>
                   </div>
                   <span style={{ color: '#64748B' }}>
