@@ -750,43 +750,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* Bottom Warm Editorial Banner */}
-      <section className="bottom-banner-frame">
-        <div className="bottom-banner-inner">
-          <span style={{ fontSize: '0.86rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#FDA4AF' }}>
-            Ready to Be a Hero?
-          </span>
-
-          <h2 className="bottom-banner-title">
-            A patient in need is waiting for someone just like you.
-          </h2>
-
-          <p className="bottom-banner-lead">
-            Join over 4,200 compassionate voluntary donors across the city. Your single blood donation today can save up to three lives tomorrow.
-          </p>
-
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <button
-              onClick={() => setShowDonorModal(true)}
-              className="btn-editorial-primary"
-              style={{ padding: '16px 36px', fontSize: '1rem' }}
-            >
-              <Heart size={20} fill="#FFFFFF" />
-              <span>Register as a Donor</span>
-            </button>
-
-            <button
-              onClick={() => setShowRequestModal(true)}
-              className="btn-editorial-secondary"
-              style={{ padding: '16px 32px', fontSize: '1rem', color: '#FFFFFF', borderColor: 'rgba(255, 255, 255, 0.4)' }}
-            >
-              <ShieldAlert size={20} color="#FDA4AF" />
-              <span>Need Blood Urgently</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
       {/* Modal 1: Register as a Blood Donor */}
       {showDonorModal && (
         <div className="editorial-modal-backdrop" onClick={() => setShowDonorModal(false)}>

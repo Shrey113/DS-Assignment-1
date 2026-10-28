@@ -691,41 +691,6 @@
   line-height: 1.65;
 }
 
-/* Bottom Warm Banner */
-.bottom-banner-frame {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 32px 88px;
-}
-
-.bottom-banner-inner {
-  padding: 64px 40px;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, #1C201D, #2D332F);
-  color: #FFFFFF;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 22px;
-  box-shadow: 0 24px 60px -15px rgba(28, 32, 29, 0.4);
-}
-
-.bottom-banner-title {
-  font-family: var(--font-serif);
-  font-size: 3rem;
-  line-height: 1.15;
-  color: #FFFFFF;
-  max-width: 680px;
-}
-
-.bottom-banner-lead {
-  font-size: 1.15rem;
-  color: #E2E8F0;
-  max-width: 540px;
-  line-height: 1.65;
-}
-
 /* Interactive Modal */
 .editorial-modal-backdrop {
   position: fixed;
