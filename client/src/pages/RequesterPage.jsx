@@ -179,82 +179,133 @@ export default function RequesterPage() {
         <div className="donor-form-side">
           <div className="donor-form-card">
             {dispatchResult ? (
-              <div className="dispatch-handover-card">
-                <div className="handover-depot-header">
-                  <h3 className="handover-depot-title">
-                    {dispatchResult.matchedDepot?.name}
-                  </h3>
-                  <div className="handover-depot-meta">
-                    <span>{dispatchResult.matchedDepot?.category}</span>
-                    <span>•</span>
-                    <span className="handover-distance-pill">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                
+                {/* ── BOX 1: Matched Blood Bank Depot ─────────────── */}
+                <div style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '16px',
+                  padding: '20px 22px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      🏥 Matched Blood Depot
+                    </span>
+                    <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>
                       📍 {dispatchResult.matchedDepot?.distanceKm} km away
                     </span>
                   </div>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748B' }}>
-                    {dispatchResult.matchedDepot?.address}, {dispatchResult.matchedDepot?.city}
-                  </p>
-                </div>
 
-                {/* Verified Cold Storage Stock */}
-                <div className="handover-stock-banner">
-                  <div className="handover-stock-left">
-                    <CheckCircle2 size={16} />
-                    <span>{dispatchResult.matchedDepot?.availableUnits} Units of {dispatchResult.matchedDepot?.bloodGroup} Available</span>
-                  </div>
-                  <span className="handover-stock-sub">
-                    {dispatchResult.matchedDepot?.totalUnits} Units in Reserve
-                  </span>
-                </div>
-
-                {/* Optimal Depot Match Details */}
-                <div style={{
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '10px',
-                  padding: '9px 12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.78rem'
-                }}>
                   <div>
-                    <span style={{ fontWeight: '700', color: '#1E293B' }}>Optimal Matched Depot: </span>
-                    <span style={{ color: '#0284C7', fontWeight: '800' }}>Score {dispatchResult.matchedDepot?.matchScore} pts</span>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '1.18rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                      {dispatchResult.matchedDepot?.name}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748B', lineHeight: '1.4' }}>
+                      {dispatchResult.matchedDepot?.address}, {dispatchResult.matchedDepot?.city}
+                    </p>
                   </div>
-                  <span style={{ color: '#64748B' }}>
-                    Depot Code: <strong>{dispatchResult.matchedDepot?.bankCode}</strong>
-                  </span>
-                </div>
 
-                {/* Top 3 Prioritized Voluntary Donors from Array */}
-                <div style={{
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  padding: '11px 13px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px'
-                }}>
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    background: '#F8FAFC',
+                    borderRadius: '10px',
+                    fontSize: '0.82rem',
+                    color: '#334155'
                   }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <span>🩸</span> Top 3 Voluntary Donors
+                    <div>
+                      <strong style={{ color: '#059669' }}>
+                        {dispatchResult.matchedDepot?.availableUnits} Units Available
+                      </strong>
+                      <span style={{ color: '#64748B', marginLeft: '6px' }}>
+                        ({dispatchResult.matchedDepot?.bloodGroup})
+                      </span>
+                    </div>
+                    <div style={{ color: '#64748B', fontSize: '0.78rem' }}>
+                      Depot #{dispatchResult.matchedDepot?.bankCode} • Match Score: <strong style={{ color: '#0F172A' }}>{dispatchResult.matchedDepot?.matchScore}</strong>
+                    </div>
+                  </div>
+
+                  {/* Direct Contact Buttons */}
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '2px' }}>
+                    {dispatchResult.matchedDepot?.emergencyPhone && (
+                      <a
+                        href={`tel:${dispatchResult.matchedDepot.emergencyPhone.replace(/\s+/g, '')}`}
+                        style={{
+                          flex: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          padding: '10px 14px',
+                          background: '#EF4444',
+                          color: '#FFFFFF',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          fontWeight: 700,
+                          fontSize: '0.82rem'
+                        }}
+                      >
+                        📞 Emergency: {dispatchResult.matchedDepot.emergencyPhone}
+                      </a>
+                    )}
+                    {dispatchResult.matchedDepot?.contactPhone && (
+                      <a
+                        href={`tel:${dispatchResult.matchedDepot.contactPhone.replace(/\s+/g, '')}`}
+                        style={{
+                          flex: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          padding: '10px 14px',
+                          background: '#F1F5F9',
+                          color: '#334155',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          fontWeight: 600,
+                          fontSize: '0.82rem'
+                        }}
+                      >
+                        ☎️ Landline: {dispatchResult.matchedDepot.contactPhone}
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── BOX 2: Voluntary Donors ──────────────────────── */}
+                <div style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '16px',
+                  padding: '20px 22px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#DC2626', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      🩸 Voluntary Donors ({dispatchResult.backupDonorsCount || 14} in {dispatchResult.matchedDepot?.city || city || 'Area'})
                     </span>
-                    <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>
-                      Priority List in {dispatchResult.matchedDepot?.city || city || 'City'}
+                    <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>
+                      Top 3 Contact List
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {(dispatchResult.topDonors && dispatchResult.topDonors.length > 0
                       ? dispatchResult.topDonors
                       : [
-                          { id: 101, name: 'Sanjay Patel', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98250 12345', isPriority: true },
+                          { id: 101, name: 'Sanjay Patel', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98250 12345' },
                           { id: 105, name: 'Pooja Shah', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98251 67890' },
                           { id: 112, name: 'Rajesh Dave', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98252 54321' }
                         ]
@@ -265,47 +316,39 @@ export default function RequesterPage() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          background: '#FFFFFF',
-                          border: idx === 0 ? '1.5px solid #10B981' : '1px solid #E2E8F0',
-                          borderRadius: '8px',
-                          padding: '6px 10px',
-                          fontSize: '0.78rem'
+                          padding: '10px 14px',
+                          background: '#F8FAFC',
+                          borderRadius: '10px',
+                          border: '1px solid #F1F5F9',
+                          fontSize: '0.82rem'
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span style={{
-                            background: idx === 0 ? '#FEF3C7' : '#F1F5F9',
+                            width: '22px',
+                            height: '22px',
+                            borderRadius: '50%',
+                            background: idx === 0 ? '#FEF3C7' : '#E2E8F0',
                             color: idx === 0 ? '#92400E' : '#475569',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             fontWeight: 800,
-                            fontSize: '0.68rem',
-                            padding: '2px 6px',
-                            borderRadius: '4px'
+                            fontSize: '0.72rem'
                           }}>
-                            #{idx + 1}
+                            {idx + 1}
                           </span>
                           <span style={{ fontWeight: 700, color: '#0F172A' }}>{donor.name}</span>
                           <span style={{
-                            fontSize: '0.68rem',
+                            fontSize: '0.7rem',
                             fontWeight: 700,
-                            color: '#EF4444',
+                            color: '#DC2626',
                             background: '#FEE2E2',
-                            padding: '1px 5px',
+                            padding: '1px 6px',
                             borderRadius: '4px'
                           }}>
                             {donor.bloodGroup}
                           </span>
-                          {idx === 0 && (
-                            <span style={{
-                              fontSize: '0.66rem',
-                              fontWeight: 800,
-                              color: '#059669',
-                              background: '#D1FAE5',
-                              padding: '1px 6px',
-                              borderRadius: '4px'
-                            }}>
-                              ⭐ Top Match
-                            </span>
-                          )}
                         </div>
 
                         {donor.phone && (
@@ -315,7 +358,7 @@ export default function RequesterPage() {
                               color: '#2563EB',
                               textDecoration: 'none',
                               fontWeight: 700,
-                              fontSize: '0.74rem'
+                              fontSize: '0.78rem'
                             }}
                           >
                             📞 {donor.phone}
@@ -326,43 +369,29 @@ export default function RequesterPage() {
                   </div>
                 </div>
 
-                {/* Direct Hotlines (Click to Call) */}
-                <div className="handover-hotlines-grid">
-                  <a
-                    href={`tel:${dispatchResult.matchedDepot?.emergencyPhone?.replace(/\s+/g, '')}`}
-                    className="handover-call-btn emergency"
-                  >
-                    <span className="handover-call-label">📞 Emergency Hotline</span>
-                    <span className="handover-call-number">{dispatchResult.matchedDepot?.emergencyPhone}</span>
-                  </a>
-
-                  <a
-                    href={`tel:${dispatchResult.matchedDepot?.contactPhone?.replace(/\s+/g, '')}`}
-                    className="handover-call-btn landline"
-                  >
-                    <span className="handover-call-label">☎️ Direct Landline</span>
-                    <span className="handover-call-number">{dispatchResult.matchedDepot?.contactPhone}</span>
-                  </a>
-                </div>
-
-                {/* Footer with Backup Donors & Reset */}
-                <div className="handover-footer-row">
-                  <div className="handover-donors-alert">
-                    <span>⚡</span>
-                    <span>{dispatchResult.backupDonorsCount || 14} Voluntary Donors Alerted in {city || 'Region'}</span>
-                  </div>
-
+                {/* Reset Action */}
+                <div style={{ textAlign: 'center', paddingTop: '4px' }}>
                   <button
                     type="button"
                     onClick={() => {
                       setDispatchResult(null);
                       setIsSubmitted(false);
                     }}
-                    className="handover-reset-btn"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#64748B',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      cursor: 'pointer',
+                      padding: '6px 12px',
+                      textDecoration: 'underline'
+                    }}
                   >
-                    + New Requisition
+                    + Submit Another Requisition
                   </button>
                 </div>
+
               </div>
             ) : (
               <>
