@@ -1,5 +1,6 @@
 import { getPool } from '../config/db.js';
 import { GUJARAT_DISTRICTS_34, resolveDistrict } from '../constants/districts.js';
+import { Donor3DArray } from '../core/data_structures/Donor3DArray.js';
 
 /**
  * Register a donor into the database.
@@ -206,3 +207,50 @@ export async function getDistrictStats(req, res, next) {
     next(error);
   }
 }
+
+/**
+ * GET /api/donors/3d-array
+ * Generates and returns a 3D multi-dimensional array of donors:
+ * - Level 1: City
+ * - Level 2: Blood Group
+ * - Level 3: Prioritized Donor IDs
+ */
+export async function getDonor3DArray(req, res, next) {
+  try {
+    const pool = getPool();
+
+    // Query active donors with SQL ordering for medical priority:
+    // Available & non-cooling donors first, followed by repeat donors by oldest donation date
+    const [rows] = await pool.query(`
+      SELECT 
+        id,
+        name,
+        city,
+        blood_group,
+        is_first_time,
+        last_donated_date
+      FROM donors
+      WHERE is_active = 1
+      ORDER BY 
+        (last_donated_date IS NULL OR is_first_time = 1) DESC,
+        last_donated_date ASC,
+        id ASC;
+    `);
+
+    const donor3D = new Donor3DArray();
+    donor3D.populateFromSQL(rows, GUJARAT_DISTRICTS_34);
+
+    return res.json({
+      success: true,
+      message: '3D Donor Array generated successfully',
+      concept: 'Multi-Dimensional Array / Inverted Index (City -> Blood Group -> Donor IDs)',
+      totalCities: donor3D.cities.length,
+      totalDonors: donor3D.getTotalDonorCount(),
+      data: donor3D.toJSON()
+    });
+  } catch (error) {
+    console.error('[Server Log: getDonor3DArray Error]', error.message);
+    next(error);
+  }
+}
+

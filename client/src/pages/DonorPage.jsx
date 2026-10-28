@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PortalHeader from '../components/PortalHeader';
+import Donor3DArrayPill from '../components/Donor3DArrayPill';
 import { AlertCircle } from 'lucide-react';
 import GUJARAT_CITIES from '../constants/gujaratCities';
 import {
@@ -38,6 +39,7 @@ export default function DonorPage() {
   const [preferredSlot, setPreferredSlot] = useState('');
   const [errors, setErrors] = useState({});
   const [isRegistered, setIsRegistered] = useState(false);
+  const [matrixRefresh, setMatrixRefresh] = useState(0);
 
   // Validate individual field on blur (when user leaves input)
   const handleBlur = (field) => {
@@ -105,6 +107,7 @@ export default function DonorPage() {
       .then((data) => {
         if (data.success) {
           setIsRegistered(true);
+          setMatrixRefresh((prev) => prev + 1);
           setTimeout(() => setIsRegistered(false), 5000);
         }
       })
@@ -479,6 +482,9 @@ export default function DonorPage() {
           </defs>
         </svg>
       </div>
+
+      {/* Floating 3D Multi-Dimensional Array Status Pill & Inspector */}
+      <Donor3DArrayPill refreshKey={matrixRefresh} />
     </div>
   );
 }
