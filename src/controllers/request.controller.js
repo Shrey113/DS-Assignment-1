@@ -134,7 +134,7 @@ export async function createRequest(req, res, next) {
       const isCentral = b.bank_code === '01';
       const score = (availableUnits * 15) + (canFulfill ? 50 : 0) + (isCentral ? 15 : 0) - (distanceKm * 2.0);
 
-      candidateStorage.insert({
+      candidateStorage.add({
         score: Number(score.toFixed(1)),
         distanceKm,
         availableUnits,
@@ -143,7 +143,7 @@ export async function createRequest(req, res, next) {
     }
 
     // 6. Retrieve best matched blood bank from array
-    const topMatch = candidateStorage.peek();
+    const topMatch = candidateStorage.getBestMatch();
     console.log(`[Dispatcher] 5. Optimal matched depot: ${topMatch.bank.name} (Score: ${topMatch.score}, Distance: ${topMatch.distanceKm} km)`);
 
     // 7. Save requisition record to MySQL requests table
