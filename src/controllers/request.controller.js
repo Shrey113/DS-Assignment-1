@@ -62,7 +62,6 @@ export async function createRequest(req, res, next) {
       bloodGroup,
       units,
       urgency,
-      requiredDate,
       isImmediate,
       latitude,
       longitude
@@ -74,9 +73,8 @@ export async function createRequest(req, res, next) {
       city: city || 'Ahmedabad',
       bloodGroup: bloodGroup || 'O+',
       units: Number(units) || 1,
-      urgency: urgency || (isImmediate ? 'CRITICAL' : 'URGENT'),
-      requiredDate: isImmediate ? null : (requiredDate || null),
-      isImmediate: Boolean(isImmediate),
+      urgency: urgency || (isImmediate ? 'CRITICAL' : 'SCHEDULED'),
+      isImmediate: Boolean(isImmediate || urgency === 'CRITICAL'),
       latitude: latitude !== undefined && latitude !== null ? Number(latitude) : 23.0225,
       longitude: longitude !== undefined && longitude !== null ? Number(longitude) : 72.5714
     };
@@ -181,7 +179,7 @@ export async function createRequest(req, res, next) {
     const insertSQL = `
       INSERT INTO requests (
         patient_name, hospital, city, blood_group, units, urgency, required_date, is_immediate, latitude, longitude, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MATCHED');
+      ) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, 'MATCHED');
     `;
     const [insertResult] = await pool.query(insertSQL, [
       activeReq.patientName,
@@ -190,18 +188,16 @@ export async function createRequest(req, res, next) {
       activeReq.bloodGroup,
       activeReq.units,
       activeReq.urgency,
-      activeReq.requiredDate,
       activeReq.isImmediate ? 1 : 0,
       activeReq.latitude,
       activeReq.longitude
     ]);
 
-    // Format human-friendly triage title
+    // Format human-friendly triage title for 24-Hour Emergency Triage
     const triageTitles = {
-      'CRITICAL': 'Tier 1: Critical Emergency (STAT)',
-      'URGENT': 'Tier 2: Urgent Requirement',
-      'SCHEDULED': 'Tier 3: Scheduled / Elective',
-      'FUTURE': 'Tier 4: Advance Reservation'
+      'CRITICAL': 'Tier 1: Critical Emergency (Immediate < 1h)',
+      'URGENT': 'Tier 2: Urgent Requirement (Within 4 Hours)',
+      'SCHEDULED': 'Tier 3: Scheduled / Elective (Within 24 Hours)'
     };
 
     return res.status(201).json({

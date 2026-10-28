@@ -7,8 +7,7 @@ import {
   validateHospital,
   validateCity,
   validateBloodGroup,
-  validateUnits,
-  validateRequiredDate
+  validateUnits
 } from '../utils/validation';
 import LocationPickerModal from '../components/LocationPickerModal';
 
@@ -48,15 +47,6 @@ const URGENCY_LEVELS = [
 
 const UNIT_OPTIONS = [1, 2, 3, 4, 5];
 
-const getMinRequiredDate = () => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const yyyy = tomorrow.getFullYear();
-  const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
-  const dd = String(tomorrow.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-};
-
 export default function RequesterPage() {
   const [patientName, setPatientName] = useState('');
   const [hospital, setHospital] = useState('');
@@ -64,9 +54,7 @@ export default function RequesterPage() {
   const [units, setUnits] = useState(null);
 
   const [bloodGroup, setBloodGroup] = useState('');
-  const [urgency, setUrgency] = useState('');
-  const [requiredDate, setRequiredDate] = useState('');
-  const [isImmediate, setIsImmediate] = useState(false);
+  const [urgency, setUrgency] = useState('CRITICAL');
   const [latitude, setLatitude] = useState(23.0225);
   const [longitude, setLongitude] = useState(72.5714);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
@@ -77,9 +65,6 @@ export default function RequesterPage() {
   const [submittedCoords, setSubmittedCoords] = useState(null);
   const [dispatchResult, setDispatchResult] = useState(null);
 
-  const minRequiredDate = getMinRequiredDate();
-  const isTriageBlocked = Boolean(requiredDate && !isImmediate);
-
   // Validate individual field on blur (when user focuses out)
   const handleBlur = (field) => {
     let errorMsg = '';
@@ -88,19 +73,8 @@ export default function RequesterPage() {
     if (field === 'city') errorMsg = validateCity(city);
     if (field === 'bloodGroup') errorMsg = validateBloodGroup(bloodGroup);
     if (field === 'units') errorMsg = validateUnits(units);
-    if (field === 'requiredDate') errorMsg = validateRequiredDate(requiredDate, isImmediate);
 
     setErrors((prev) => ({ ...prev, [field]: errorMsg }));
-  };
-
-  const handleDateChange = (e) => {
-    const val = e.target.value;
-    setRequiredDate(val);
-    if (val) {
-      setUrgency('');
-    }
-    const err = validateRequiredDate(val, isImmediate);
-    setErrors((prev) => ({ ...prev, requiredDate: err }));
   };
 
   const handleSubmit = async (e) => {
@@ -112,8 +86,7 @@ export default function RequesterPage() {
       hospital: validateHospital(hospital),
       city: validateCity(city),
       bloodGroup: validateBloodGroup(bloodGroup),
-      units: validateUnits(units),
-      requiredDate: validateRequiredDate(requiredDate, isImmediate)
+      units: validateUnits(units)
     };
 
     setErrors(allErrors);
@@ -135,9 +108,8 @@ export default function RequesterPage() {
           city,
           bloodGroup,
           units: Number(units) || 1,
-          urgency: urgency || (isImmediate ? 'CRITICAL' : 'URGENT'),
-          requiredDate: isImmediate ? null : (requiredDate || null),
-          isImmediate: Boolean(isImmediate),
+          urgency: urgency || 'CRITICAL',
+          isImmediate: urgency === 'CRITICAL',
           latitude: Number(latitude) || 23.0225,
           longitude: Number(longitude) || 72.5714
         })
@@ -488,43 +460,7 @@ export default function RequesterPage() {
                     </div>
                   </div>
 
-                  {/* Required By Date */}
-                  <div className="donor-field-group">
-                    <div className="donor-label-between">
-                      <label className="donor-field-label">Required By Date</label>
-                      <label className="donor-checkbox-inline">
-                        <input
-                          type="checkbox"
-                          checked={isImmediate}
-                          onChange={(e) => {
-                            setIsImmediate(e.target.checked);
-                            if (e.target.checked) {
-                              setRequiredDate('');
-                              setErrors((prev) => ({ ...prev, requiredDate: '' }));
-                            }
-                          }}
-                        />
-                        <span>Immediate (STAT)</span>
-                      </label>
-                    </div>
-                    <input
-                      type="date"
-                      value={requiredDate}
-                      min={minRequiredDate}
-                      onChange={handleDateChange}
-                      onBlur={() => handleBlur('requiredDate')}
-                      disabled={isImmediate}
-                      className={`donor-field-input ${isImmediate ? 'is-disabled' : ''} ${errors.requiredDate ? 'has-error' : ''}`}
-                    />
-                    <div className="field-error-slot">
-                      {errors.requiredDate && (
-                        <span className="field-hint-error">
-                          <AlertCircle size={12} />
-                          <span>{errors.requiredDate}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
+
 
                   {/* Units Needed */}
                   <div className="donor-field-group">
@@ -603,17 +539,16 @@ export default function RequesterPage() {
 
                   {/* Emergency Priority */}
                   <div className="donor-field-group">
-                    <label className="donor-field-label">Emergency Priority Triage</label>
-                    <div className={`requester-urgency-stack ${isTriageBlocked ? 'is-blocked' : ''}`}>
+                    <label className="donor-field-label">Emergency Priority Triage (24-Hour)</label>
+                    <div className="requester-urgency-stack">
                       {URGENCY_LEVELS.map((lvl) => {
                         const isSelected = urgency === lvl.id;
                         return (
                           <button
                             key={lvl.id}
                             type="button"
-                            disabled={isTriageBlocked}
                             className={`requester-priority-card ${lvl.id.toLowerCase()} ${isSelected ? 'active' : ''}`}
-                            onClick={() => !isTriageBlocked && setUrgency(lvl.id)}
+                            onClick={() => setUrgency(lvl.id)}
                           >
                             <div className="priority-card-content">
                               <span className="priority-radio-circle">

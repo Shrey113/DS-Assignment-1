@@ -4,6 +4,10 @@
  * ============================================================================
  * 
  * Academic Concept: First-In-First-Out (FIFO) Linear Data Structure.
+ * Powers the 24-Hour Emergency Priority Triage Engine across 3 urgency tiers:
+ *   - Tier 1: Critical Emergency (Immediate < 1h)
+ *   - Tier 2: Urgent Requirement (Within 4 Hours)
+ *   - Tier 3: Scheduled / Elective (Within 24 Hours: Planned surgical procedure)
  * 
  * Implementation Details:
  * - Uses head and tail index pointers over an internal hash table/object.

@@ -58,21 +58,12 @@ mlq.enqueue({
   units: 1
 });
 
-// 5th: Future Date reservation (Future Queue - Tier 4)
-mlq.enqueue({
-  patientName: 'Kishore Dave',
-  hospital: 'SAL Hospital',
-  requiredDate: '2026-10-30',
-  units: 1
-});
-
 const stats = mlq.getStatus();
 console.log('Enqueued Queue Status:', stats);
 console.assert(stats.critical === 2, 'Critical queue should hold 2 requests');
 console.assert(stats.urgent === 1, 'Urgent queue should hold 1 request');
 console.assert(stats.scheduled === 1, 'Scheduled queue should hold 1 request');
-console.assert(stats.future === 1, 'Future queue should hold 1 request');
-console.assert(stats.totalPending === 5, 'Total pending should be 5');
+console.assert(stats.totalPending === 4, 'Total pending should be 4');
 
 // Now Dequeue sequentially:
 // 1st Dequeue MUST be Critical Trauma #1 (Tier 1, arrived first)
@@ -93,23 +84,17 @@ console.log('3rd Dispatched:', d3.request.patientName, `(${d3.triage.tierId})`);
 console.assert(d3.request.patientName === 'Priya Sharma', 'Must serve Urgent third');
 console.assert(d3.triage.tier === 2, 'Tier must be 2');
 
-// 4th Dequeue MUST be Scheduled (Tier 3)
+// 4th Dequeue MUST be Scheduled / Elective (Tier 3: Within 24 Hours)
 const d4 = mlq.dequeue();
 console.log('4th Dispatched:', d4.request.patientName, `(${d4.triage.tierId})`);
 console.assert(d4.request.patientName === 'Ramesh Patel', 'Must serve Scheduled fourth');
 console.assert(d4.triage.tier === 3, 'Tier must be 3');
 
-// 5th Dequeue MUST be Future (Tier 4)
+// 5th Dequeue on empty queue must return null
 const d5 = mlq.dequeue();
-console.log('5th Dispatched:', d5.request.patientName, `(${d5.triage.tierId})`);
-console.assert(d5.request.patientName === 'Kishore Dave', 'Must serve Future fifth');
-console.assert(d5.triage.tier === 4, 'Tier must be 4');
-
-// 6th Dequeue on empty queue must return null
-const d6 = mlq.dequeue();
-console.assert(d6 === null, 'Drained queue must return null');
+console.assert(d5 === null, 'Drained queue must return null');
 console.assert(mlq.isEmpty() === true, 'MLQ must report empty');
 
 console.log('\n================================================================');
-console.log('ALL TESTS PASSED! Multilevel Priority Queue (MLQ) is 100% Verified!');
+console.log('ALL TESTS PASSED! 24-Hour Emergency Priority Triage MLQ is 100% Verified!');
 console.log('================================================================');
