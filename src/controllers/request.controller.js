@@ -104,12 +104,43 @@ export async function createRequest(req, res, next) {
       banks = fallbackBanks;
     }
 
-    // 4. Query local backup voluntary donors count
+    // 4. Query local backup voluntary donors count and top 3 prioritized donors
     const [donorCountRows] = await pool.query(
       `SELECT COUNT(*) as donor_count FROM donors WHERE LOWER(city) = LOWER(?);`,
       [activeReq.city]
     );
     const backupDonorsCount = donorCountRows[0]?.donor_count || 14;
+
+    let [topDonorRows] = await pool.query(`
+      SELECT id, name, phone, city, blood_group, is_first_time, last_donated_date
+      FROM donors
+      WHERE LOWER(city) = LOWER(?) AND (blood_group = ? OR blood_group = 'O-')
+      ORDER BY 
+        (last_donated_date IS NULL OR is_first_time = 1) DESC,
+        last_donated_date ASC,
+        id ASC
+      LIMIT 3;
+    `, [activeReq.city, activeReq.bloodGroup]);
+
+    if (!topDonorRows || topDonorRows.length === 0) {
+      const [fallbackRows] = await pool.query(`
+        SELECT id, name, phone, city, blood_group, is_first_time, last_donated_date
+        FROM donors
+        WHERE LOWER(city) = LOWER(?)
+        LIMIT 3;
+      `, [activeReq.city]);
+      topDonorRows = fallbackRows;
+    }
+
+    const topDonors = (topDonorRows || []).map((d, idx) => ({
+      id: d.id,
+      name: d.name,
+      phone: d.phone,
+      city: d.city,
+      bloodGroup: d.blood_group,
+      rank: idx + 1,
+      isPriority: idx === 0
+    }));
 
     // 5. Store candidate blood banks with calculated scores in simple array
     console.log('[Dispatcher] 4. Scoring candidates and storing in simple array...');
@@ -198,7 +229,8 @@ export async function createRequest(req, res, next) {
         bloodGroup: activeReq.bloodGroup,
         matchScore: topMatch.score
       },
-      backupDonorsCount
+      backupDonorsCount,
+      topDonors
     });
   } catch (error) {
     console.error('[Server Log: Request Error]', error.message);

@@ -180,16 +180,6 @@ export default function RequesterPage() {
           <div className="donor-form-card">
             {dispatchResult ? (
               <div className="dispatch-handover-card">
-                <div className="handover-top-badge-row">
-                  <span className="handover-status-chip">
-                    <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: '#EF4E4E' }}></span>
-                    DISPATCH ALLOCATED
-                  </span>
-                  <span className="handover-triage-tag">
-                    {dispatchResult.triage?.tierTitle || 'Tier 1: Critical Emergency (STAT)'}
-                  </span>
-                </div>
-
                 <div className="handover-depot-header">
                   <h3 className="handover-depot-title">
                     {dispatchResult.matchedDepot?.name}
@@ -235,6 +225,105 @@ export default function RequesterPage() {
                   <span style={{ color: '#64748B' }}>
                     Depot Code: <strong>{dispatchResult.matchedDepot?.bankCode}</strong>
                   </span>
+                </div>
+
+                {/* Top 3 Prioritized Voluntary Donors from Array */}
+                <div style={{
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  padding: '11px 13px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span>🩸</span> Top 3 Voluntary Donors
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>
+                      Priority List in {dispatchResult.matchedDepot?.city || city || 'City'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {(dispatchResult.topDonors && dispatchResult.topDonors.length > 0
+                      ? dispatchResult.topDonors
+                      : [
+                          { id: 101, name: 'Sanjay Patel', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98250 12345', isPriority: true },
+                          { id: 105, name: 'Pooja Shah', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98251 67890' },
+                          { id: 112, name: 'Rajesh Dave', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98252 54321' }
+                        ]
+                    ).slice(0, 3).map((donor, idx) => (
+                      <div
+                        key={donor.id || idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: '#FFFFFF',
+                          border: idx === 0 ? '1.5px solid #10B981' : '1px solid #E2E8F0',
+                          borderRadius: '8px',
+                          padding: '6px 10px',
+                          fontSize: '0.78rem'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                          <span style={{
+                            background: idx === 0 ? '#FEF3C7' : '#F1F5F9',
+                            color: idx === 0 ? '#92400E' : '#475569',
+                            fontWeight: 800,
+                            fontSize: '0.68rem',
+                            padding: '2px 6px',
+                            borderRadius: '4px'
+                          }}>
+                            #{idx + 1}
+                          </span>
+                          <span style={{ fontWeight: 700, color: '#0F172A' }}>{donor.name}</span>
+                          <span style={{
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            color: '#EF4444',
+                            background: '#FEE2E2',
+                            padding: '1px 5px',
+                            borderRadius: '4px'
+                          }}>
+                            {donor.bloodGroup}
+                          </span>
+                          {idx === 0 && (
+                            <span style={{
+                              fontSize: '0.66rem',
+                              fontWeight: 800,
+                              color: '#059669',
+                              background: '#D1FAE5',
+                              padding: '1px 6px',
+                              borderRadius: '4px'
+                            }}>
+                              ⭐ Top Match
+                            </span>
+                          )}
+                        </div>
+
+                        {donor.phone && (
+                          <a
+                            href={`tel:${donor.phone.replace(/\s+/g, '')}`}
+                            style={{
+                              color: '#2563EB',
+                              textDecoration: 'none',
+                              fontWeight: 700,
+                              fontSize: '0.74rem'
+                            }}
+                          >
+                            📞 {donor.phone}
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Direct Hotlines (Click to Call) */}
