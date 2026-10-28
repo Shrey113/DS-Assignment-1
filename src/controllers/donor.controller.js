@@ -1,6 +1,6 @@
 import { getPool } from '../config/db.js';
 import { GUJARAT_DISTRICTS_34, resolveDistrict } from '../constants/districts.js';
-import { Donor3DArray } from '../core/data_structures/Donor3DArray.js';
+import donorSqlHandler from '../core/sql_handlers/donorSqlHandler.js';
 
 /**
  * Register a donor into the database.
@@ -237,16 +237,16 @@ export async function getDonor3DArray(req, res, next) {
         id ASC;
     `);
 
-    const donor3D = new Donor3DArray();
-    donor3D.populateFromSQL(rows, GUJARAT_DISTRICTS_34);
+    donorSqlHandler.storeDonorsFromSql(rows, GUJARAT_DISTRICTS_34);
+    const donor3DData = donorSqlHandler.getDonor3DFormat();
 
     return res.json({
       success: true,
       message: '3D Donor Array generated successfully',
-      concept: 'Multi-Dimensional Array / Inverted Index (City -> Blood Group -> Donor IDs)',
-      totalCities: donor3D.cities.length,
-      totalDonors: donor3D.getTotalDonorCount(),
-      data: donor3D.toJSON()
+      concept: 'Multi-Dimensional In-Memory O(1) Hash Table (City -> Blood Group -> Donor IDs)',
+      totalCities: donor3DData.cities.length,
+      totalDonors: donorSqlHandler.getTotalDonorsCount(),
+      data: donor3DData
     });
   } catch (error) {
     console.error('[Server Log: getDonor3DArray Error]', error.message);

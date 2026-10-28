@@ -108,6 +108,6 @@ export class ArrayStorage {
   }
 }
 
-export { Donor3DArray } from './Donor3DArray.js';
 export default ArrayStorage;
+
 
