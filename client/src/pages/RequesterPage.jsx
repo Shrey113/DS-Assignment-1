@@ -495,6 +495,28 @@ export default function RequesterPage() {
                     </div>
                   </div>
 
+                  {/* Hospital / Incident Location (GPS) - Left Side */}
+                  <div className="donor-field-group">
+                    <label className="donor-field-label">Hospital / Incident Location (GPS)</label>
+                    <button
+                      type="button"
+                      onClick={() => setIsMapModalOpen(true)}
+                      className={`location-picker-trigger-btn ${hasPickedLocation ? 'has-location' : ''}`}
+                    >
+                      <span className="location-trigger-left">
+                        <MapPin size={15} className="location-trigger-icon" />
+                        <span>
+                          {hasPickedLocation
+                            ? `${Number(latitude).toFixed(4)}° N, ${Number(longitude).toFixed(4)}° E ${city ? `(${city})` : ''}`
+                            : 'Select Location'}
+                        </span>
+                      </span>
+                      <span className="location-trigger-badge">
+                        {hasPickedLocation ? 'Change Pin' : 'Pick on Map ↗'}
+                      </span>
+                    </button>
+                  </div>
+
                 </div>
 
                 {/* Right Column: Blood Group, Urgency & Target */}
@@ -568,27 +590,6 @@ export default function RequesterPage() {
                     </div>
                   </div>
 
-                  {/* Location Map Pin Trigger Button (Right End Side) */}
-                  <div className="donor-field-group">
-                    <label className="donor-field-label">Hospital / Incident Location (GPS)</label>
-                    <button
-                      type="button"
-                      onClick={() => setIsMapModalOpen(true)}
-                      className={`location-picker-trigger-btn ${hasPickedLocation ? 'has-location' : ''}`}
-                    >
-                      <span className="location-trigger-left">
-                        <MapPin size={15} className="location-trigger-icon" />
-                        <span>
-                          {hasPickedLocation
-                            ? `${Number(latitude).toFixed(4)}° N, ${Number(longitude).toFixed(4)}° E ${city ? `(${city})` : ''}`
-                            : 'Select Location'}
-                        </span>
-                      </span>
-                      <span className="location-trigger-badge">
-                        {hasPickedLocation ? 'Change Pin' : 'Pick on Map ↗'}
-                      </span>
-                    </button>
-                  </div>
                 </div>
 
               </div>
