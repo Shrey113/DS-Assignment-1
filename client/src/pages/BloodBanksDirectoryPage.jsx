@@ -4,7 +4,6 @@ import PortalHeader from '../components/PortalHeader';
 import { 
   Droplet, 
   Search, 
-  ArrowRight, 
   Activity, 
   AlertTriangle, 
   RefreshCw, 
@@ -151,11 +150,6 @@ export default function BloodBanksDirectoryPage() {
                       <span>Low: {item.critical_shortages.join(', ')}</span>
                     </div>
                   )}
-                </div>
-
-                <div className="bb-city-card-footer">
-                  <span>View Depots & Inventory</span>
-                  <ArrowRight size={15} />
                 </div>
               </Link>
             ))}

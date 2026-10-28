@@ -365,22 +365,6 @@
   border-radius: 6px;
 }
 
-.bb-city-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 14px;
-  border-top: 1px solid var(--bb-border-subtle);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--bb-red);
-}
-
-.bb-city-card:hover .bb-city-card-footer svg {
-  transform: translateX(4px);
-  transition: transform 0.2s ease;
-}
-
 /* Blood Bank Cards Stack (City View) */
 .bb-banks-stack {
   display: flex;
