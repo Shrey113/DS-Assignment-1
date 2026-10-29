@@ -20,7 +20,6 @@ app.use((req, res, next) => {
 
 // routes
 app.use('/api/gujarat', gujaratRoutes);
-app.use('/api/donors', gujaratRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/blood-banks', bloodBankRoutes);
 app.use('/api/ds', allDsRoutes);
