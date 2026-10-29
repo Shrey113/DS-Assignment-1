@@ -98,7 +98,7 @@ class DonorManager {
             donor.city,
             donor.bloodGroup,
             donor.isFirstTime ? 1 : 0,
-            donor.preferredSlot
+            donor.preferredSlot || 'flexible'
         ]);
 
         await new Promise((resolve) => setTimeout(resolve, 100));

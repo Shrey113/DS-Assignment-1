@@ -119,8 +119,8 @@ export default function DonorPage() {
       return;
     }
 
-    // Send donor data to MySQL backend
-    fetch('http://localhost:5100/api/donors', {
+    // Send donor data to MySQL backend via 3D Array DS API
+    fetch('http://localhost:5100/api/ds/3d-array', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -131,10 +131,8 @@ export default function DonorPage() {
         weight,
         city,
         bloodGroup,
-        lastDonatedDate: isFirstTime ? null : (lastDonationDate || null),
         isFirstTime,
-        preferredSlot: preferredSlot || 'flexible',
-        availableDays
+        preferredSlot: preferredSlot || 'flexible'
       })
     })
       .then((res) => res.json())

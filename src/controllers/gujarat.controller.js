@@ -2,70 +2,11 @@ import { getPool } from '../config/db.js';
 import { GUJARAT_DISTRICTS_34, resolveDistrict } from '../constants/districts.js';
 
 /**
- * Register a donor into the database.
- * Handled by: POST /api/donors
- */
-export async function registerDonor(req, res, next) {
-  try {
-    const {
-      name,
-      email,
-      phone,
-      age,
-      weight,
-      city,
-      bloodGroup,
-      lastDonatedDate,
-      isFirstTime,
-      preferredSlot
-    } = req.body;
-
-    console.log('[Server Log: Donor] Received request to add donor:');
-    console.log({ name, email, phone, age, weight, city, bloodGroup, lastDonatedDate, isFirstTime, preferredSlot });
-
-    const pool = getPool();
-
-    const query = `
-      INSERT INTO donors (
-        name, email, phone, age, weight, city, blood_group, last_donated_date, is_first_time, preferred_slot, is_active
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-    `;
-
-    const values = [
-      name || 'Anonymous',
-      email || null,
-      phone || null,
-      Number(age) || null,
-      Number(weight) || null,
-      city || null,
-      bloodGroup || null,
-      isFirstTime ? null : (lastDonatedDate || null),
-      isFirstTime ? 1 : 0,
-      preferredSlot || 'flexible',
-      1
-    ];
-
-    const [result] = await pool.query(query, values);
-
-    console.log(`[Server Log: Donor] Successfully saved donor with ID: ${result.insertId}`);
-
-    return res.status(201).json({
-      success: true,
-      message: 'Donor added successfully',
-      id: result.insertId
-    });
-  } catch (error) {
-    console.error('[Server Log: Donor Error]', error.message);
-    next(error);
-  }
-}
-
-/**
  * Fetch aggregated donor statistics for all 34 Gujarat districts.
  * Calculates dynamic availability based on:
  * 1. Medical Cooldown: >= 90 days since last donation (or first-time donor).
  * 2. Real-time Slot: Preferred time slot matches current hour (or flexible 24/7).
- * Handled by: GET /api/donors/districts
+ * Handled by: GET /api/gujarat/districts
  */
 export async function getDistrictStats(req, res, next) {
   try {
@@ -145,8 +86,6 @@ export async function getDistrictStats(req, res, next) {
       overallTotal += 1;
 
       // 1. Dynamic Medical Cooldown Check:
-      // First-time donors have never donated, so they have 0 cooldown.
-      // Repeat donors must have donated at least 90 days ago to be medically eligible.
       let isMedicallyEligible = false;
       if (row.is_first_time === 1 || !row.last_donated_date) {
         isMedicallyEligible = true;
@@ -166,8 +105,6 @@ export async function getDistrictStats(req, res, next) {
       }
 
       // 2. Real-Time Preferred Slot Check:
-      // Flexible donors are available anytime (24/7 emergency response).
-      // Otherwise, the donor's chosen slot (morning, afternoon, evening) must match current time.
       const slot = (row.preferred_slot || 'flexible').toLowerCase();
       const isSlotActive = (slot === 'flexible') || (slot === currentSlot);
 
@@ -206,6 +143,4 @@ export async function getDistrictStats(req, res, next) {
     next(error);
   }
 }
-
-
 

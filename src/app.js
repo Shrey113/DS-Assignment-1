@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { config } from './config/env.js';
-import donorRoutes from './routes/donor.routes.js';
+import gujaratRoutes from './routes/gujarat.routes.js';
 import requestRoutes from './routes/request.routes.js';
 import bloodBankRoutes from './routes/bloodbank.routes.js';
 import allDsRoutes from './core/data_structures/all_ds_rout.js';
@@ -19,7 +19,8 @@ app.use((req, res, next) => {
 });
 
 // routes
-app.use('/api/donors', donorRoutes);
+app.use('/api/gujarat', gujaratRoutes);
+app.use('/api/donors', gujaratRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/blood-banks', bloodBankRoutes);
 app.use('/api/ds', allDsRoutes);
