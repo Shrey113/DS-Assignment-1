@@ -371,8 +371,9 @@ export default function RequesterLocationMap({
           <span className="requester-coords-dot black-theme"></span>
           <span>{displayLat}° N, {displayLng}° E</span>
         </div>
-        <span className="requester-map-hint black-theme">
-          📍 Click district or drag beacon to set requisition coordinates
+        <span className="requester-map-hint black-theme" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <MapPin size={12} strokeWidth={2.2} />
+          <span>Click district or drag beacon to set requisition coordinates</span>
         </span>
       </div>
     </div>

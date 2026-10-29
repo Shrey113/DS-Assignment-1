@@ -1,6 +1,6 @@
 import { getPool } from '../config/db.js';
 import { MultilevelQueue, TRIAGE_TIERS } from '../core/data_structures/MultilevelQueue.js';
-import { ArrayStorage } from '../core/data_structures/ArrayStorage.js';
+import DonorManager from '../core/data_structures/3D_Array_Donor.js';
 
 // Stage 1: Persistent in-memory Multilevel Priority Queue (MLQ)
 const triageMLQ = new MultilevelQueue();
@@ -102,48 +102,17 @@ export async function createRequest(req, res, next) {
       banks = fallbackBanks;
     }
 
-    // 4. Query local backup voluntary donors count and top 3 prioritized donors
-    const [donorCountRows] = await pool.query(
-      `SELECT COUNT(*) as donor_count FROM donors WHERE LOWER(city) = LOWER(?);`,
-      [activeReq.city]
-    );
-    const backupDonorsCount = donorCountRows[0]?.donor_count || 14;
+    // 4. Query local backup voluntary donors using 3D Array (O(1) lookup)
+    const init_data = new DonorManager();
+    await init_data.init_donor_3D_array();
+    const cityDonors = init_data.donors[activeReq.city] || {};
+    const backupDonorsCount = Object.values(cityDonors).reduce((s, list) => s + (list?.length || 0), 0) || 14;
+    const topDonors = init_data.get_best_3_option(activeReq.city, activeReq.bloodGroup);
 
-    let [topDonorRows] = await pool.query(`
-      SELECT id, name, phone, city, blood_group, is_first_time, last_donated_date
-      FROM donors
-      WHERE LOWER(city) = LOWER(?) AND (blood_group = ? OR blood_group = 'O-')
-      ORDER BY 
-        (last_donated_date IS NULL OR is_first_time = 1) DESC,
-        last_donated_date ASC,
-        id ASC
-      LIMIT 3;
-    `, [activeReq.city, activeReq.bloodGroup]);
-
-    if (!topDonorRows || topDonorRows.length === 0) {
-      const [fallbackRows] = await pool.query(`
-        SELECT id, name, phone, city, blood_group, is_first_time, last_donated_date
-        FROM donors
-        WHERE LOWER(city) = LOWER(?)
-        LIMIT 3;
-      `, [activeReq.city]);
-      topDonorRows = fallbackRows;
-    }
-
-    const topDonors = (topDonorRows || []).map((d, idx) => ({
-      id: d.id,
-      name: d.name,
-      phone: d.phone,
-      city: d.city,
-      bloodGroup: d.blood_group,
-      rank: idx + 1,
-      isPriority: idx === 0
-    }));
-
-    // 5. Store candidate blood banks with calculated scores in simple array
-    console.log('[Dispatcher] 4. Scoring candidates and storing in simple array...');
-    const candidateStorage = new ArrayStorage();
+    // 5. Score candidate blood banks and select best match
+    console.log('[Dispatcher] 4. Scoring candidates and selecting optimal depot...');
     const stockCol = getStockColumn(activeReq.bloodGroup);
+    let topMatch = null;
 
     for (const b of banks) {
       const availableUnits = Number(b[stockCol]) || 0;
@@ -161,19 +130,21 @@ export async function createRequest(req, res, next) {
       // - (distanceKm * 2.0) points distance penalty
       const canFulfill = availableUnits >= activeReq.units;
       const isCentral = b.bank_code === '01';
-      const score = (availableUnits * 15) + (canFulfill ? 50 : 0) + (isCentral ? 15 : 0) - (distanceKm * 2.0);
+      const score = Number(((availableUnits * 15) + (canFulfill ? 50 : 0) + (isCentral ? 15 : 0) - (distanceKm * 2.0)).toFixed(1));
 
-      candidateStorage.add({
-        score: Number(score.toFixed(1)),
+      const candidate = {
+        score,
         distanceKm,
         availableUnits,
         bank: b
-      });
+      };
+
+      if (!topMatch || candidate.score > topMatch.score) {
+        topMatch = candidate;
+      }
     }
 
-    // 6. Retrieve best matched blood bank from array
-    const topMatch = candidateStorage.getBestMatch();
-    console.log(`[Dispatcher] 5. Optimal matched depot: ${topMatch.bank.name} (Score: ${topMatch.score}, Distance: ${topMatch.distanceKm} km)`);
+    console.log(`[Dispatcher] 5. Optimal matched depot: ${topMatch?.bank?.name} (Score: ${topMatch?.score}, Distance: ${topMatch?.distanceKm} km)`);
 
     // 7. Save requisition record to MySQL requests table
     const insertSQL = `

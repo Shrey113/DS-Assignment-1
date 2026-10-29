@@ -1,7 +1,3 @@
-/* ═════════════════════════════════════════════════════════════════
-   LANDING.CSS - Editorial Blood Donation Landing Page Styles
-   ═════════════════════════════════════════════════════════════════ */
-
 .editorial-layout {
   min-height: 100vh;
   display: flex;
@@ -9,7 +5,6 @@
   background-color: var(--bg-cream);
 }
 
-/* First Viewport Section: Full 100svh Cover */
 .hero-viewport-section {
   min-height: 100svh;
   height: 100svh;
@@ -21,7 +16,6 @@
   overflow: hidden;
 }
 
-/* Top Navigation Bar */
 .editorial-nav {
   width: 100%;
   max-width: 1360px;
@@ -82,7 +76,6 @@
   gap: 14px;
 }
 
-/* Hero Section (Fills remaining 100svh height with tightened vertical rhythm) */
 .editorial-hero {
   flex: 1;
   max-width: 1360px;
@@ -142,9 +135,12 @@
 }
 
 @keyframes cursorBlink {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
@@ -167,7 +163,6 @@
   flex-wrap: wrap;
 }
 
-/* Floating Natural Illustrations (Click & Auto-Cycling: Simple Opacity Fade In/Out) */
 .hero-illustration-wrapper {
   display: flex;
   flex-direction: column;
@@ -191,7 +186,6 @@
   position: relative;
 }
 
-/* Subtle warm organic backdrop glow to visually ground and connect illustration */
 .hero-illustration-area.clickable-hero-slider::before {
   content: '';
   position: absolute;
@@ -228,7 +222,6 @@
   opacity: 0;
 }
 
-/* Visual Anchor Caption Pill (Ties artwork directly into BloodLink mission) */
 .illustration-caption-pill {
   display: inline-flex;
   align-items: center;
@@ -264,10 +257,13 @@
 }
 
 @keyframes pulseDot {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.4;
     transform: scale(0.85);
@@ -285,7 +281,6 @@
   font-size: 0.78rem;
 }
 
-/* Social proof footer row in hero */
 .hero-social-trust {
   display: flex;
   align-items: center;
@@ -295,7 +290,6 @@
   color: var(--text-tertiary);
 }
 
-/* Impact Statistics Banner */
 .stats-banner-wrap {
   width: 100%;
   background: #FFFFFF;
@@ -343,7 +337,6 @@
   color: var(--text-tertiary);
 }
 
-/* Editorial Section Header */
 .editorial-section-head {
   text-align: center;
   max-width: 680px;
@@ -367,7 +360,6 @@
   line-height: 1.65;
 }
 
-/* Why Your Donation Matters */
 .content-section-wrap {
   max-width: 1280px;
   margin: 0 auto;
@@ -410,7 +402,6 @@
   line-height: 1.65;
 }
 
-/* How It Works (Numbered Editorial Flow) */
 .how-steps-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -440,46 +431,6 @@
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--text-primary);
-}
-
-/* Eligibility & Calculator Section */
-.eligibility-editorial-box {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 36px;
-}
-
-.eligibility-checklist-card {
-  padding: 40px 36px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.checklist-items-stack {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.check-item-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  font-size: 0.98rem;
-  color: var(--text-secondary);
-}
-
-.check-item-row strong {
-  color: var(--text-primary);
-}
-
-.calculator-card-wrap {
-  padding: 40px 36px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
 }
 
 .calc-inputs-row {
@@ -517,30 +468,6 @@
   border-color: var(--coral-accent);
 }
 
-.verdict-banner-pill {
-  padding: 16px 20px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 700;
-  font-size: 0.96rem;
-  margin-top: 6px;
-}
-
-.verdict-safe {
-  background-color: var(--leaf-sage);
-  border: 1px solid var(--leaf-sage-border);
-  color: var(--leaf-sage-text);
-}
-
-.verdict-wait {
-  background-color: var(--peach-warm);
-  border: 1px solid var(--peach-border);
-  color: var(--peach-text);
-}
-
-/* Blood Group Compatibility Guide */
 .compat-guide-card {
   padding: 44px;
   border-radius: var(--radius-xl);
@@ -609,7 +536,6 @@
   gap: 6px;
 }
 
-/* Stories / Quotes */
 .testimonials-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -652,7 +578,6 @@
   justify-content: center;
 }
 
-/* FAQ Accordion */
 .faq-wrap-stack {
   max-width: 860px;
   margin: 0 auto;
@@ -691,7 +616,6 @@
   line-height: 1.65;
 }
 
-/* Interactive Modal */
 .editorial-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -734,7 +658,6 @@
   color: var(--text-primary);
 }
 
-/* Editorial Footer */
 .editorial-footer-bar {
   border-top: 1px solid var(--bg-card-border);
   background-color: #FFFFFF;
@@ -800,39 +723,45 @@
   gap: 12px;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .editorial-hero {
     grid-template-columns: 1fr;
     text-align: center;
   }
+
   .hero-text-block {
     align-items: center;
   }
+
   .hero-action-buttons {
     justify-content: center;
   }
+
   .hero-social-trust {
     justify-content: center;
   }
+
   .stats-inner-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .why-matters-grid, .how-steps-grid {
+
+  .why-matters-grid,
+  .how-steps-grid {
     grid-template-columns: 1fr;
   }
-  .eligibility-editorial-box {
-    grid-template-columns: 1fr;
-  }
+
   .compat-two-cols {
     grid-template-columns: 1fr;
   }
+
   .testimonials-grid {
     grid-template-columns: 1fr;
   }
+
   .footer-top-grid {
     grid-template-columns: 1fr 1fr;
   }
+
   .nav-links-row {
     display: none;
   }
@@ -842,9 +771,11 @@
   .hero-main-heading {
     font-size: 3.2rem;
   }
+
   .stats-inner-grid {
     grid-template-columns: 1fr;
   }
+
   .footer-top-grid {
     grid-template-columns: 1fr;
   }

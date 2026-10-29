@@ -1,7 +1,3 @@
-/* ==========================================================================
-   BloodLink - Blood Banks Directory & Depot Monitor Stylesheet
-   ========================================================================== */
-
 :root {
   --bb-bg-primary: #FBF9F7;
   --bb-bg-surface: #FFFFFF;
@@ -28,7 +24,7 @@
   --bb-shadow-lg: 0 16px 36px rgba(28, 32, 29, 0.08);
 }
 
-/* Page Layout Container */
+
 .bb-page-container {
   min-height: 100vh;
   background-color: var(--bb-bg-primary);
@@ -46,7 +42,7 @@
   padding: 32px 24px 64px 24px;
 }
 
-/* Breadcrumb Navigation */
+
 .bb-breadcrumb-bar {
   display: flex;
   align-items: center;
@@ -102,7 +98,7 @@
   border-color: var(--bb-border-strong);
 }
 
-/* Hero Section */
+
 .bb-hero-banner {
   background: linear-gradient(135deg, #FFFFFF 0%, #FAF6F3 100%);
   border: 1px solid var(--bb-border-subtle);
@@ -163,7 +159,7 @@
   line-height: 1.5;
 }
 
-/* Metric Chips Row */
+
 .bb-metrics-row {
   display: flex;
   flex-wrap: wrap;
@@ -191,9 +187,20 @@
   background: #FAF6F3;
 }
 
-.bb-metric-icon.red { background: var(--bb-red-soft); color: var(--bb-red); }
-.bb-metric-icon.green { background: var(--bb-green-soft); color: var(--bb-green); }
-.bb-metric-icon.blue { background: var(--bb-blue-soft); color: var(--bb-blue); }
+.bb-metric-icon.red {
+  background: var(--bb-red-soft);
+  color: var(--bb-red);
+}
+
+.bb-metric-icon.green {
+  background: var(--bb-green-soft);
+  color: var(--bb-green);
+}
+
+.bb-metric-icon.blue {
+  background: var(--bb-blue-soft);
+  color: var(--bb-blue);
+}
 
 .bb-metric-content {
   display: flex;
@@ -215,7 +222,7 @@
   letter-spacing: 0.04em;
 }
 
-/* Filters & Search Toolbar */
+
 .bb-toolbar {
   display: flex;
   align-items: center;
@@ -285,7 +292,7 @@
   border-color: var(--bb-text-primary);
 }
 
-/* Grid of Cities (Directory View) */
+
 .bb-cities-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -365,7 +372,7 @@
   border-radius: 6px;
 }
 
-/* Blood Bank Cards Stack (City View) */
+
 .bb-banks-stack {
   display: flex;
   flex-direction: column;
@@ -499,7 +506,7 @@
   font-weight: 700;
 }
 
-/* Stock Mini Grid (Chips) */
+
 .bb-stock-chips-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -559,7 +566,7 @@
   color: var(--bb-red);
 }
 
-/* Depot Detail Page Styles */
+
 .bb-depot-detail-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -653,7 +660,7 @@
   background: var(--bb-red-dark);
 }
 
-/* Unified Cold Storage Reserve Inventory Box (Clean, Professional, Non-AI) */
+
 .bb-inventory-card {
   background: #FFFFFF;
   border: 1px solid var(--bb-border-subtle);
@@ -704,7 +711,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* Strictly NO hover animation or transform */
+
 }
 
 .bb-inventory-item:hover {
@@ -781,12 +788,13 @@
   .bb-inventory-card {
     padding: 20px 16px;
   }
+
   .bb-inventory-grid {
     grid-template-columns: 1fr;
   }
 }
 
-/* Two Column Details: Hospital Requests + Local Backup Donors */
+
 .bb-depot-two-col {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
@@ -821,7 +829,7 @@
   margin: 0;
 }
 
-/* Hospital Requisitions Table / Stack */
+
 .bb-req-stack {
   display: flex;
   flex-direction: column;
@@ -883,11 +891,22 @@
   border-radius: 4px;
 }
 
-.bb-req-badge.critical { background: var(--bb-red-soft); color: var(--bb-red-dark); }
-.bb-req-badge.urgent { background: var(--bb-amber-soft); color: var(--bb-amber); }
-.bb-req-badge.scheduled { background: #F4F1ED; color: var(--bb-text-secondary); }
+.bb-req-badge.critical {
+  background: var(--bb-red-soft);
+  color: var(--bb-red-dark);
+}
 
-/* Backup Donors Widget */
+.bb-req-badge.urgent {
+  background: var(--bb-amber-soft);
+  color: var(--bb-amber);
+}
+
+.bb-req-badge.scheduled {
+  background: #F4F1ED;
+  color: var(--bb-text-secondary);
+}
+
+
 .bb-donors-widget-content {
   display: flex;
   flex-direction: column;

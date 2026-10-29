@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import PortalHeader from '../components/PortalHeader';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
 import GUJARAT_CITIES from '../constants/gujaratCities';
+import { getRandomDonorData } from '../utils/fakeData';
 import {
   validateFullName,
   validateEmail,
@@ -39,6 +40,40 @@ export default function DonorPage() {
   const [errors, setErrors] = useState({});
   const [isRegistered, setIsRegistered] = useState(false);
   const [matrixRefresh, setMatrixRefresh] = useState(0);
+
+  // Quick random auto-fill for testing
+  const handleAutoFill = () => {
+    const data = getRandomDonorData();
+    setName(data.name);
+    setEmail(data.email);
+    setPhone(data.phone);
+    setBloodGroup(data.bloodGroup);
+    setAge(data.age);
+    setWeight(data.weight);
+    setCity(data.city);
+    setIsFirstTime(data.isFirstTime);
+    setLastDonationDate(data.lastDonationDate);
+    setAvailableDays(data.availableDays);
+    setPreferredSlot(data.preferredSlot);
+    setErrors({});
+  };
+
+  // Reset form to add another donor entry
+  const handleNewEntry = () => {
+    setName('');
+    setEmail('');
+    setPhone('');
+    setBloodGroup('');
+    setAge('');
+    setWeight('');
+    setCity('');
+    setLastDonationDate('');
+    setIsFirstTime(false);
+    setAvailableDays([]);
+    setPreferredSlot('');
+    setErrors({});
+    setIsRegistered(false);
+  };
 
   // Validate individual field on blur (when user leaves input)
   const handleBlur = (field) => {
@@ -96,7 +131,7 @@ export default function DonorPage() {
         weight,
         city,
         bloodGroup,
-        lastDonatedDate,
+        lastDonatedDate: isFirstTime ? null : (lastDonationDate || null),
         isFirstTime,
         preferredSlot: preferredSlot || 'flexible',
         availableDays
@@ -106,15 +141,11 @@ export default function DonorPage() {
       .then((data) => {
         if (data.success) {
           setIsRegistered(true);
-          setMatrixRefresh((prev) => prev + 1);
-          setTimeout(() => setIsRegistered(false), 5000);
         }
       })
       .catch((err) => {
         console.error('Error registering donor:', err);
-        // Fallback display
         setIsRegistered(true);
-        setTimeout(() => setIsRegistered(false), 5000);
       });
   };
 
@@ -138,7 +169,27 @@ export default function DonorPage() {
               <p className="donor-card-sub">Your voluntary profile coordinates critical emergency matches.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="donor-fields-stack">
+            {isRegistered ? (
+              <div className="donor-success-state">
+                <div className="donor-success-icon-wrap">
+                  <CheckCircle2 size={54} color="#16A34A" strokeWidth={2.4} />
+                </div>
+                <div className="donor-success-text-group">
+                  <h3 className="donor-success-heading">Registration Submitted</h3>
+                  <p className="donor-success-message">
+                    We will contact you if needed for any urgent requisition.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleNewEntry}
+                  className="donor-success-new-btn"
+                >
+                  <span>+ Add New Entry</span>
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="donor-fields-stack">
               <div className="donor-form-columns">
 
                 {/* Left Column: Personal & Contact */}
@@ -429,13 +480,8 @@ export default function DonorPage() {
                 <span>Register as a voluntary donor</span>
                 <span className="btn-arrow-icon">→</span>
               </button>
-
-              {isRegistered && (
-                <div className="portal-success-toast">
-                  <span>✓ Your voluntary donor profile is now active{name ? `, ${name}` : ''}.</span>
-                </div>
-              )}
             </form>
+          )}
           </div>
         </div>
 
@@ -481,6 +527,17 @@ export default function DonorPage() {
           </defs>
         </svg>
       </div>
+
+      {/* Floating Bottom-Right Auto-Fill Button */}
+      <button
+        type="button"
+        onClick={handleAutoFill}
+        className="auto-fill-btn"
+        title="Generate random sample data to fill the donor registration form"
+      >
+        <Sparkles size={16} />
+        <span>Auto Fill Form</span>
+      </button>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { config } from './config/env.js';
 import donorRoutes from './routes/donor.routes.js';
 import requestRoutes from './routes/request.routes.js';
 import bloodBankRoutes from './routes/bloodbank.routes.js';
+import allDsRoutes from './core/data_structures/all_ds_rout.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use((req, res, next) => {
 app.use('/api/donors', donorRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/blood-banks', bloodBankRoutes);
+app.use('/api/ds', allDsRoutes);
 
 // other endpoints
 app.get('/api/health', (req, res) => {

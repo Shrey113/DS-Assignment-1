@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import PortalHeader from '../components/PortalHeader';
-import { 
-  Droplet, 
-  Search, 
-  Activity, 
-  AlertTriangle, 
-  RefreshCw, 
-  PhoneCall 
+import {
+  Droplet,
+  Search,
+  Activity,
+  AlertTriangle,
+  RefreshCw,
+  PhoneCall
 } from 'lucide-react';
 import '../styles/blood-banks.css';
 
-// Regional grouping for quick filter pills
+
 const REGION_MAP = {
   'Central Gujarat': ['Ahmedabad', 'Vadodara', 'Anand', 'Kheda', 'Panchmahal', 'Dahod', 'Mahisagar', 'Chhota Udaipur'],
   'North Gujarat': ['Gandhinagar', 'Banaskantha', 'Vav-Tharad', 'Patan', 'Mehsana', 'Sabarkantha', 'Aravalli'],
@@ -42,7 +42,7 @@ export default function BloodBanksDirectoryPage() {
     loadDirectory();
   }, []);
 
-  // Filter cities based on search and region
+
   const filteredCities = useMemo(() => {
     if (!data?.cities) return [];
     return data.cities.filter((c) => {
@@ -60,7 +60,6 @@ export default function BloodBanksDirectoryPage() {
       <PortalHeader pageTitle="Blood Banks" />
 
       <main className="bb-page-content">
-        {/* Hero Banner */}
         <section className="bb-hero-banner">
           <h1 className="bb-hero-title">
             Verified Blood Banks & <br />
@@ -72,7 +71,6 @@ export default function BloodBanksDirectoryPage() {
           </p>
         </section>
 
-        {/* Search & Region Filter Toolbar */}
         <div className="bb-toolbar">
           <div className="bb-search-box">
             <Search size={16} color="#8E9690" />
@@ -106,7 +104,6 @@ export default function BloodBanksDirectoryPage() {
           </div>
         </div>
 
-        {/* Directory Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#8E9690' }}>
             <RefreshCw size={24} className="spin-slow" style={{ animation: 'spin 1s linear infinite' }} />

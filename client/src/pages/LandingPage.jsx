@@ -13,13 +13,11 @@ import {
   ArrowRight,
   Activity,
   Award,
-  AlertTriangle,
-  Smile,
   MapPin
 } from 'lucide-react';
 import '../App.css';
 
-// ── Blood Groups Information ────────────────────────────────
+
 const BLOOD_GROUPS_INFO = {
   'O-': {
     title: 'O- Negative (The Universal Lifesaver)',
@@ -71,7 +69,7 @@ const BLOOD_GROUPS_INFO = {
   }
 };
 
-// ── FAQs Data ──────────────────────────────────────────────
+
 const FAQ_ITEMS = [
   {
     q: 'Does donating blood hurt?',
@@ -95,7 +93,7 @@ const FAQ_ITEMS = [
   }
 ];
 
-// 5 Editorial Blood Donation Illustration Variants (Focused on BloodLink Donor Connection)
+
 const HERO_VARIANTS = [
   {
     src: '/editorial_donation_2.png',
@@ -148,11 +146,11 @@ export default function App() {
   const [selectedBloodGroup, setSelectedBloodGroup] = useState('O+');
   const [openFaq, setOpenFaq] = useState(0);
 
-  // Hero Illustration Auto & Click Cycling State (10-second timer)
+
   const [heroVariantIndex, setHeroVariantIndex] = useState(0);
   const currentVariant = HERO_VARIANTS[heroVariantIndex];
 
-  // Two-Line Typewriter effect: types line 1, then line 2, and removes '|' cursor upon completion
+
   const [typedLine1, setTypedLine1] = useState(HERO_VARIANTS[0].line1);
   const [typedLine2, setTypedLine2] = useState(HERO_VARIANTS[0].line2);
   const [isTypingComplete, setIsTypingComplete] = useState(true);
@@ -168,7 +166,7 @@ export default function App() {
     setIsTypingComplete(false);
 
     let phase = 1;
-    const typingSpeed = 42; // ms per char
+    const typingSpeed = 42;
 
     const interval = setInterval(() => {
       if (phase === 1) {
@@ -193,7 +191,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [heroVariantIndex, currentVariant.line1, currentVariant.line2]);
 
-  // Auto-advance illustration every 10 seconds (larger interval), resetting on user manual click
+
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroVariantIndex((prev) => (prev + 1) % HERO_VARIANTS.length);
@@ -205,17 +203,10 @@ export default function App() {
     setHeroVariantIndex((prev) => (prev + 1) % HERO_VARIANTS.length);
   };
 
-  // Modal dialog states
+
   const [showDonorModal, setShowDonorModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-
-  // Eligibility Calculator State
-  const [userAge, setUserAge] = useState(24);
-  const [userWeight, setUserWeight] = useState(65);
-  const [lastDonationDays, setLastDonationDays] = useState(105);
-
-  const isEligible = userAge >= 18 && userAge <= 65 && userWeight >= 45 && lastDonationDays >= 90;
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -361,7 +352,7 @@ export default function App() {
             </div>
 
             {/* Visual Anchor Caption Pill (Ties artwork directly into BloodLink message) */}
-            <div 
+            <div
               className="illustration-caption-pill"
               onClick={handleNextHeroIllustration}
             >
@@ -482,127 +473,6 @@ export default function App() {
               <p className="card-paragraph-body">
                 Visit a certified blood bank or camp. Spend 15 comfortable minutes relaxing in a recliner, enjoy juice, and walk out a hero.
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Eligibility & Self-Check Section */}
-      <section id="eligibility" className="content-section-wrap">
-        <div className="editorial-section-head">
-          <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#EF4E4E', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            Health Guidelines
-          </span>
-          <h2 className="editorial-section-title">Who Can Donate Blood?</h2>
-          <p className="editorial-section-subtitle">
-            Most healthy adults can safely give blood. Here is the friendly checklist to see if you can save a life today.
-          </p>
-        </div>
-
-        <div className="eligibility-editorial-box">
-          <div className="editorial-card eligibility-checklist-card">
-            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem' }}>General Eligibility Criteria</h3>
-
-            <ul className="checklist-items-stack">
-              <li className="check-item-row">
-                <CheckCircle2 size={22} color="#2E7D32" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div>
-                  <strong>Age between 18 and 65:</strong> Healthy young adults and seniors in good medical health are welcome.
-                </div>
-              </li>
-              <li className="check-item-row">
-                <CheckCircle2 size={22} color="#2E7D32" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div>
-                  <strong>Minimum Weight of 45 kg:</strong> Ensures your body easily and naturally adapts to the donation.
-                </div>
-              </li>
-              <li className="check-item-row">
-                <CheckCircle2 size={22} color="#2E7D32" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div>
-                  <strong>Feeling Healthy & Well Today:</strong> Free from active fever, cold, flu, or recent oral antibiotics.
-                </div>
-              </li>
-              <li className="check-item-row">
-                <CheckCircle2 size={22} color="#2E7D32" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div>
-                  <strong>90-Day Cooldown:</strong> At least 3 months have passed since your last whole blood donation.
-                </div>
-              </li>
-            </ul>
-
-            <button
-              onClick={() => setShowDonorModal(true)}
-              className="btn-editorial-primary"
-              style={{ marginTop: 'auto', alignSelf: 'flex-start' }}
-            >
-              <span>Join as a Verified Donor</span>
-              <ArrowRight size={16} />
-            </button>
-          </div>
-
-          {/* Interactive Calculator */}
-          <div className="editorial-card calculator-card-wrap">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Smile size={26} color="#EF4E4E" />
-              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem' }}>Instant Self-Check</h3>
-            </div>
-            <p style={{ fontSize: '0.94rem', color: 'var(--text-secondary)' }}>
-              Adjust the values below to immediately see your current donation readiness:
-            </p>
-
-            <div className="calc-inputs-row">
-              <div className="calc-field-group">
-                <label className="calc-field-label">Age (18 - 65)</label>
-                <input
-                  type="number"
-                  min="16"
-                  max="80"
-                  value={userAge}
-                  onChange={(e) => setUserAge(Number(e.target.value))}
-                  className="calc-field-control"
-                />
-              </div>
-
-              <div className="calc-field-group">
-                <label className="calc-field-label">Weight (&gt;45 kg)</label>
-                <input
-                  type="number"
-                  min="30"
-                  max="150"
-                  value={userWeight}
-                  onChange={(e) => setUserWeight(Number(e.target.value))}
-                  className="calc-field-control"
-                />
-              </div>
-            </div>
-
-            <div className="calc-field-group">
-              <label className="calc-field-label">Days Since Your Last Blood Donation</label>
-              <input
-                type="number"
-                min="0"
-                max="365"
-                value={lastDonationDays}
-                onChange={(e) => setLastDonationDays(Number(e.target.value))}
-                className="calc-field-control"
-              />
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>If you are a first-time donor, enter 90 or more.</span>
-            </div>
-
-            <div className={`verdict-banner-pill ${isEligible ? 'verdict-safe' : 'verdict-wait'}`}>
-              {isEligible ? (
-                <>
-                  <CheckCircle2 size={20} color="#2E7D32" />
-                  <span>Wonderful news! You are medically eligible to donate blood today.</span>
-                </>
-              ) : (
-                <>
-                  <AlertTriangle size={20} color="#C84B31" />
-                  <span>
-                    Currently in cooldown or limits. {userAge < 18 ? 'Must be 18+' : userWeight < 45 ? 'Weight must be at least 45kg' : 'Must wait at least 90 days between donations.'}
-                  </span>
-                </>
-              )}
             </div>
           </div>
         </div>
@@ -896,7 +766,6 @@ export default function App() {
             <ul className="footer-nav-list">
               <li><a href="#why-donate" className="footer-nav-anchor">Why Give Blood</a></li>
               <li><a href="#how-it-works" className="footer-nav-anchor">How It Works</a></li>
-              <li><a href="#eligibility" className="footer-nav-anchor">Eligibility Guidelines</a></li>
               <li><a href="#blood-types" className="footer-nav-anchor">Blood Compatibility</a></li>
               <li><Link to="/our-area" className="footer-nav-anchor">Our Area (Gujarat Map)</Link></li>
               <li><Link to="/blood-banks" className="footer-nav-anchor">Blood Banks Directory</Link></li>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PortalHeader from '../components/PortalHeader';
-import { AlertCircle, MapPin, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, MapPin, CheckCircle2, Sparkles, Hospital, PhoneCall, Phone, Droplet, Plus } from 'lucide-react';
 import GUJARAT_CITIES from '../constants/gujaratCities';
+import { getRandomRequesterData } from '../utils/fakeData';
 import {
   validatePatientName,
   validateHospital,
@@ -64,6 +65,40 @@ export default function RequesterPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedCoords, setSubmittedCoords] = useState(null);
   const [dispatchResult, setDispatchResult] = useState(null);
+  const [liveDonorsCount, setLiveDonorsCount] = useState(null);
+
+  // Live 3D Array query whenever city and bloodGroup are selected
+  useEffect(() => {
+    if (city && bloodGroup) {
+      fetch(`http://localhost:5100/api/ds/3d-array/${encodeURIComponent(city)}/${encodeURIComponent(bloodGroup)}`)
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.success && res.donors) {
+            setLiveDonorsCount(res.donors.length);
+          } else {
+            setLiveDonorsCount(0);
+          }
+        })
+        .catch(() => setLiveDonorsCount(null));
+    } else {
+      setLiveDonorsCount(null);
+    }
+  }, [city, bloodGroup]);
+
+  // Quick random auto-fill for testing
+  const handleAutoFill = () => {
+    const data = getRandomRequesterData();
+    setPatientName(data.patientName);
+    setHospital(data.hospital);
+    setCity(data.city);
+    setBloodGroup(data.bloodGroup);
+    setUnits(data.units);
+    setUrgency(data.urgency);
+    setLatitude(data.latitude);
+    setLongitude(data.longitude);
+    setHasPickedLocation(true);
+    setErrors({});
+  };
 
   // Validate individual field on blur (when user focuses out)
   const handleBlur = (field) => {
@@ -117,6 +152,17 @@ export default function RequesterPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        // Direct synchronization with the 3D Array route: /api/ds/3d-array/:city/:bloodGroup
+        try {
+          const dsRes = await fetch(`http://localhost:5100/api/ds/3d-array/${encodeURIComponent(city)}/${encodeURIComponent(bloodGroup)}`);
+          const dsData = await dsRes.json();
+          if (dsData.success && Array.isArray(dsData.best_3_options) && dsData.best_3_options.length > 0) {
+            data.topDonors = dsData.best_3_options;
+          }
+        } catch (dsErr) {
+          console.warn('[3D Array] Fallback to backend topDonors:', dsErr);
+        }
+
         setDispatchResult(data);
         setSubmittedCoords({
           lat: Number(latitude) || 23.0225,
@@ -165,11 +211,29 @@ export default function RequesterPage() {
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      🏥 Matched Blood Depot
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      color: '#0284C7',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}>
+                      <Hospital size={15} strokeWidth={2.2} />
+                      <span>Matched Blood Depot</span>
                     </span>
-                    <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>
-                      📍 {dispatchResult.matchedDepot?.distanceKm} km away
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      fontSize: '0.78rem',
+                      color: '#64748B',
+                      fontWeight: 600
+                    }}>
+                      <MapPin size={13} color="#EF4444" strokeWidth={2.2} />
+                      <span>{dispatchResult.matchedDepot?.distanceKm} km away</span>
                     </span>
                   </div>
 
@@ -225,7 +289,8 @@ export default function RequesterPage() {
                           fontSize: '0.82rem'
                         }}
                       >
-                        📞 Emergency: {dispatchResult.matchedDepot.emergencyPhone}
+                        <PhoneCall size={14} strokeWidth={2.2} />
+                        <span>Emergency: {dispatchResult.matchedDepot.emergencyPhone}</span>
                       </a>
                     )}
                     {dispatchResult.matchedDepot?.contactPhone && (
@@ -247,7 +312,8 @@ export default function RequesterPage() {
                           fontSize: '0.82rem'
                         }}
                       >
-                        ☎️ Landline: {dispatchResult.matchedDepot.contactPhone}
+                        <Phone size={14} strokeWidth={2} color="#475569" />
+                        <span>Landline: {dispatchResult.matchedDepot.contactPhone}</span>
                       </a>
                     )}
                   </div>
@@ -265,8 +331,18 @@ export default function RequesterPage() {
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#DC2626', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      🩸 Voluntary Donors ({dispatchResult.backupDonorsCount || 14} in {dispatchResult.matchedDepot?.city || city || 'Area'})
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      color: '#DC2626',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}>
+                      <Droplet size={14} fill="#DC2626" color="#DC2626" strokeWidth={1.5} />
+                      <span>Voluntary Donors ({dispatchResult.backupDonorsCount || 14} in {dispatchResult.matchedDepot?.city || city || 'Area'})</span>
                     </span>
                     <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>
                       Top 3 Contact List
@@ -310,7 +386,7 @@ export default function RequesterPage() {
                           }}>
                             {idx + 1}
                           </span>
-                          <span style={{ fontWeight: 700, color: '#0F172A' }}>{donor.name}</span>
+                          <span style={{ fontWeight: 700, color: '#0F172A' }}>{donor.name || 'Anonymous Donor'}</span>
                           <span style={{
                             fontSize: '0.7rem',
                             fontWeight: 700,
@@ -319,21 +395,25 @@ export default function RequesterPage() {
                             padding: '1px 6px',
                             borderRadius: '4px'
                           }}>
-                            {donor.bloodGroup}
+                            {donor.bloodGroup || donor.blood_group || bloodGroup}
                           </span>
                         </div>
 
-                        {donor.phone && (
+                        {(donor.phone || donor.contact) && (
                           <a
-                            href={`tel:${donor.phone.replace(/\s+/g, '')}`}
+                            href={`tel:${String(donor.phone || donor.contact).replace(/\s+/g, '')}`}
                             style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
                               color: '#2563EB',
                               textDecoration: 'none',
                               fontWeight: 700,
                               fontSize: '0.78rem'
                             }}
                           >
-                            📞 {donor.phone}
+                            <Phone size={12} strokeWidth={2.2} />
+                            <span>{donor.phone || donor.contact}</span>
                           </a>
                         )}
                       </div>
@@ -350,6 +430,9 @@ export default function RequesterPage() {
                       setIsSubmitted(false);
                     }}
                     style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
                       background: 'none',
                       border: 'none',
                       color: '#64748B',
@@ -360,7 +443,8 @@ export default function RequesterPage() {
                       textDecoration: 'underline'
                     }}
                   >
-                    + Submit Another Requisition
+                    <Plus size={13} strokeWidth={2.5} />
+                    <span>Submit Another Requisition</span>
                   </button>
                 </div>
 
@@ -551,11 +635,18 @@ export default function RequesterPage() {
                         </span>
                       )}
                     </div>
-                    <div className="requester-compat-hint" style={{ marginTop: '4px' }}>
-                      <span className="requester-compat-label">Safe voluntary matches:</span>
-                      <strong className="requester-compat-pill">
-                        {bloodGroup && compatibleDonors.length > 0 ? compatibleDonors.join(', ') : 'Select blood group'}
-                      </strong>
+                    <div className="requester-compat-hint" style={{ marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <span className="requester-compat-label">Safe voluntary matches:</span>
+                        <strong className="requester-compat-pill">
+                          {bloodGroup && compatibleDonors.length > 0 ? compatibleDonors.join(', ') : 'Select blood group'}
+                        </strong>
+                      </div>
+                      {liveDonorsCount !== null && (
+                        <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>
+                          {liveDonorsCount} {liveDonorsCount === 1 ? 'Donor' : 'Donors'} in 3D Index ({city})
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -604,7 +695,8 @@ export default function RequesterPage() {
 
               {isSubmitted && (
                 <div className="portal-success-toast">
-                  <span>✓ Emergency broadcast sent! Requisition saved with GPS ({submittedCoords ? `${submittedCoords.lat}° N, ${submittedCoords.lng}° E` : `${latitude}° N, ${longitude}° E`}). Alerting verified {bloodGroup ? compatibleDonors.join('/') : 'compatible'} voluntary donors near {hospital || city || 'depot'}.</span>
+                  <CheckCircle2 size={16} color="#4ADE80" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+                  <span>Emergency broadcast sent! Requisition saved with GPS ({submittedCoords ? `${submittedCoords.lat}° N, ${submittedCoords.lng}° E` : `${latitude}° N, ${longitude}° E`}). Alerting verified {bloodGroup ? compatibleDonors.join('/') : 'compatible'} voluntary donors near {hospital || city || 'depot'}.</span>
                 </div>
               )}
             </form>
@@ -669,6 +761,17 @@ export default function RequesterPage() {
           </defs>
         </svg>
       </div>
+
+      {/* Floating Bottom-Right Auto-Fill Button */}
+      <button
+        type="button"
+        onClick={handleAutoFill}
+        className="auto-fill-btn"
+        title="Generate random sample data to fill the requester form"
+      >
+        <Sparkles size={16} />
+        <span>Auto Fill Form</span>
+      </button>
     </div>
   );
 }
