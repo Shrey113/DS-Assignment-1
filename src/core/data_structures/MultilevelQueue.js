@@ -1,56 +1,15 @@
-/**
- * ============================================================================
- * BloodLink Data Structures - Multilevel Priority Queue (MLQ) Triage Engine
- * ============================================================================
- * 
- * Academic Concept: Multilevel Queue (MLQ) Priority Dispatching for 24-Hour Triage.
- * Modeled after the Emergency Severity Index (ESI) Triage Protocol used in
- * real-world hospital emergency departments.
- * 
- * 24-Hour Emergency Priority Triage Design:
- * - Operates strictly within a 24-hour critical response window:
- *     Level 1: CRITICAL  - Critical Emergency: Immediate (< 1 hour response)
- *                          Life-threatening trauma or emergency surgery
- *     Level 2: URGENT    - Urgent Requirement: Within 4 Hours
- *                          Active inpatient deficit, ICU resuscitation or oncology
- *     Level 3: SCHEDULED - Scheduled / Elective: Within 24 Hours
- *                          Planned surgical procedure or replenishment reserve
- * 
- * Dispatching Rules:
- * - Strict Priority Precedence: Level 1 (Critical) is drained before Level 2 (Urgent),
- *   which is drained before Level 3 (Scheduled/Elective).
- * - Intra-Tier FIFO Fairness: Within each urgency level, requests are served in strict
- *   FIFO order of arrival, guaranteeing zero starvation.
- * 
- * Time Complexities:
- * - Enqueue: O(1) Constant Time (Direct routing to queue tier)
- * - Dequeue: O(1) Constant Time (Top priority queue head extraction)
- * - Peek:    O(1) Constant Time
- */
-
 import { Queue } from './Queue.js';
 
 export const TRIAGE_TIERS = {
   CRITICAL: {
     level: 1,
-    id: 'CRITICAL',
-    title: 'Tier 1: Critical Emergency',
-    window: 'Immediate (< 1h)',
-    desc: 'Life-threatening trauma or emergency surgery'
   },
   URGENT: {
     level: 2,
-    id: 'URGENT',
-    title: 'Tier 2: Urgent Requirement',
-    window: 'Within 4 Hours',
-    desc: 'Active inpatient deficit, ICU resuscitation or oncology'
+
   },
   SCHEDULED: {
     level: 3,
-    id: 'SCHEDULED',
-    title: 'Tier 3: Scheduled / Elective',
-    window: 'Within 24 Hours',
-    desc: 'Planned surgical procedure or replenishment reserve'
   }
 };
 

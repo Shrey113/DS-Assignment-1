@@ -5,7 +5,6 @@ const router = Router();
 const manager = new DonorManager();
 await manager.init_donor_3D_array();
 
-// POST /api/ds/3d-array - Add donor to SQL and update 3D Array
 router.post('/3d-array', async (req, res, next) => {
   try {
     const result = await manager.add_donors(req.body);
@@ -20,7 +19,6 @@ router.post('/3d-array', async (req, res, next) => {
   }
 });
 
-// GET /api/ds/3d-array/:city/:bloodGroup
 router.get('/3d-array/:city?/:bloodGroup?', (req, res) => {
   const { city, bloodGroup } = req.params;
 
