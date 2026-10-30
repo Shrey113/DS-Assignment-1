@@ -134,7 +134,7 @@ export default function RequesterPage() {
 
     try {
       setIsSubmitting(true);
-      const res = await fetch('http://localhost:5100/api/requests', {
+      const res = await fetch('http://localhost:5100/api/ds/queue', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,9 +1,6 @@
 import { getPool } from '../config/db.js';
-import { MultilevelQueue, TRIAGE_TIERS } from '../core/data_structures/MultilevelQueue.js';
+import { triageMLQ } from '../core/data_structures/MultilevelQueue.js';
 import DonorManager from '../core/data_structures/3D_Array_Donor.js';
-
-// Stage 1: Persistent in-memory Multilevel Priority Queue (MLQ)
-const triageMLQ = new MultilevelQueue();
 
 /**
  * Calculates real Haversine distance in kilometers between two GPS coordinates.
