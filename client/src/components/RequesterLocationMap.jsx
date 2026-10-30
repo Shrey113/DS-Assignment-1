@@ -5,13 +5,11 @@ import { MapPin, Navigation, RotateCcw } from 'lucide-react';
 import gujaratGeoJson from '../assets/gujarat_districts_34.json';
 import '../styles/requester-map.css';
 
-// Exact Gujarat Bounding Box: covers entire Gujarat state
 const GUJARAT_BOUNDS = [
-  [20.1000, 68.1000], // South-West corner
-  [24.7000, 74.5000]  // North-East corner
+  [20.1000, 68.1000],
+  [24.7000, 74.5000]
 ];
 
-// District centers directory
 const DISTRICT_CENTERS = {
   'Ahmedabad': [23.0225, 72.5714],
   'Amreli': [21.6032, 71.2221],
@@ -49,7 +47,6 @@ const DISTRICT_CENTERS = {
   'Vav-Tharad': [24.3940, 71.6267]
 };
 
-// Custom Glowing Red Beacon Pin Icon
 const createEmergencyBeaconIcon = () => {
   return L.divIcon({
     className: 'emergency-custom-marker',
@@ -80,14 +77,12 @@ export default function RequesterLocationMap({
   const [isLocating, setIsLocating] = useState(false);
   const isInternalUpdateRef = useRef(false);
 
-  // Helper: Clamp coordinate inside the Gujarat State Box
   const clampToGujarat = (lat, lng) => {
     const clampedLat = Math.max(20.1000, Math.min(24.7000, lat));
     const clampedLng = Math.max(68.1000, Math.min(74.5000, lng));
     return [Number(clampedLat.toFixed(4)), Number(clampedLng.toFixed(4))];
   };
 
-  // Initialize Black Gujarat Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
     if (mapInstanceRef.current) return;
@@ -95,7 +90,6 @@ export default function RequesterLocationMap({
     const initialLat = latitude || 23.0225;
     const initialLng = longitude || 72.5714;
 
-    // 1. Create Leaflet map with dark styling
     const map = L.map(mapContainerRef.current, {
       center: [initialLat, initialLng],
       zoom: 7.4,
@@ -105,7 +99,6 @@ export default function RequesterLocationMap({
       attributionControl: false
     });
 
-    // 2. Render Gujarat 34 District Vector Polygons in Black / Dark Theme
     const geoLayer = L.geoJSON(gujaratGeoJson, {
       style: (feature) => {
         const isMatched = city && feature.properties.district.toLowerCase() === city.toLowerCase();
@@ -120,14 +113,12 @@ export default function RequesterLocationMap({
       onEachFeature: (feature, layer) => {
         const dName = feature.properties.district;
 
-        // Hover tooltip on dark map
         layer.bindTooltip(dName, {
           className: 'dark-district-tooltip',
           direction: 'center',
           sticky: true
         });
 
-        // Hover interaction
         layer.on({
           mouseover: (e) => {
             const target = e.target;
@@ -161,14 +152,12 @@ export default function RequesterLocationMap({
       }
     }).addTo(map);
 
-    // 3. Add Draggable Glowing Emergency Pin
     const marker = L.marker([initialLat, initialLng], {
       icon: createEmergencyBeaconIcon(),
       draggable: true,
       autoPan: true
     }).addTo(map);
 
-    // Handle Drag End
     marker.on('dragend', () => {
       const pos = marker.getLatLng();
       const [cLat, cLng] = clampToGujarat(pos.lat, pos.lng);
@@ -180,7 +169,6 @@ export default function RequesterLocationMap({
       }
     });
 
-    // 4. Click anywhere on the map
     map.on('click', (e) => {
       const { lat, lng } = e.latlng;
       const [cLat, cLng] = clampToGujarat(lat, lng);
@@ -192,7 +180,6 @@ export default function RequesterLocationMap({
       }
     });
 
-    // Fit initial view nicely to Gujarat bounds
     map.fitBounds(GUJARAT_BOUNDS, { padding: [16, 16] });
 
     mapInstanceRef.current = map;
@@ -207,7 +194,6 @@ export default function RequesterLocationMap({
     };
   }, []);
 
-  // Update polygon highlight when external City changes
   useEffect(() => {
     const map = mapInstanceRef.current;
     const geo = geoLayerRef.current;
@@ -216,7 +202,6 @@ export default function RequesterLocationMap({
 
     setSelectedDistrictName(city);
 
-    // Reset styles and highlight selected city
     if (geo) {
       geo.eachLayer((layer) => {
         const dName = layer.feature?.properties?.district;
@@ -246,7 +231,6 @@ export default function RequesterLocationMap({
     }
   }, [city]);
 
-  // Sync marker position if coords change externally
   useEffect(() => {
     if (isInternalUpdateRef.current) {
       isInternalUpdateRef.current = false;
@@ -258,7 +242,6 @@ export default function RequesterLocationMap({
     }
   }, [latitude, longitude]);
 
-  // "Current Location" Button Handler
   const handleCurrentLocation = () => {
     setIsLocating(true);
 
@@ -269,7 +252,6 @@ export default function RequesterLocationMap({
           const rawLat = position.coords.latitude;
           const rawLng = position.coords.longitude;
 
-          // If within Gujarat bounds, snap directly. Otherwise map into Gujarat area realistically
           const [cLat, cLng] = clampToGujarat(
             rawLat >= 20.0 && rawLat <= 25.0 ? rawLat : 23.0225,
             rawLng >= 68.0 && rawLng <= 75.0 ? rawLng : 72.5714
@@ -286,7 +268,6 @@ export default function RequesterLocationMap({
         },
         (error) => {
           setIsLocating(false);
-          // Graceful fallback to city center or Ahmedabad with a realistic tiny offset
           const base = (city && DISTRICT_CENTERS[city]) ? DISTRICT_CENTERS[city] : [23.0225, 72.5714];
           const [cLat, cLng] = clampToGujarat(base[0] + 0.008, base[1] - 0.006);
 
@@ -309,20 +290,17 @@ export default function RequesterLocationMap({
     }
   };
 
-  // Recenter full Gujarat
   const handleResetGujarat = () => {
     if (mapInstanceRef.current) {
       mapInstanceRef.current.fitBounds(GUJARAT_BOUNDS, { padding: [16, 16], duration: 0.6 });
     }
   };
 
-  // Display coordinates in exact format: e.g. 23.4859° N, 68.7153° E
   const displayLat = latitude ? Number(latitude).toFixed(4) : '23.0225';
   const displayLng = longitude ? Number(longitude).toFixed(4) : '72.5714';
 
   return (
     <div className="requester-map-card black-theme">
-      {/* Header */}
       <div className="requester-map-header black-theme">
         <div className="requester-map-title-row">
           <div className="requester-map-icon-badge black-theme">
@@ -338,7 +316,6 @@ export default function RequesterLocationMap({
           </div>
         </div>
 
-        {/* Actions: Current Location & Recenter */}
         <div className="requester-map-header-actions">
           <button
             type="button"
@@ -362,10 +339,8 @@ export default function RequesterLocationMap({
         </div>
       </div>
 
-      {/* Black Gujarat Vector Canvas */}
       <div ref={mapContainerRef} className="requester-map-canvas black-theme" />
 
-      {/* Footer Coordinate HUD */}
       <div className="requester-map-footer black-theme">
         <div className="requester-coords-badge black-theme">
           <span className="requester-coords-dot black-theme"></span>

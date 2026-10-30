@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import '../App.css';
 
-
 const BLOOD_GROUPS_INFO = {
   'O-': {
     title: 'O- Negative (The Universal Lifesaver)',
@@ -69,7 +68,6 @@ const BLOOD_GROUPS_INFO = {
   }
 };
 
-
 const FAQ_ITEMS = [
   {
     q: 'Does donating blood hurt?',
@@ -92,7 +90,6 @@ const FAQ_ITEMS = [
     a: 'Healthy male donors can donate whole blood every 90 days (3 months), and healthy female donors can donate every 120 days (4 months).'
   }
 ];
-
 
 const HERO_VARIANTS = [
   {
@@ -146,10 +143,8 @@ export default function App() {
   const [selectedBloodGroup, setSelectedBloodGroup] = useState('O+');
   const [openFaq, setOpenFaq] = useState(0);
 
-
   const [heroVariantIndex, setHeroVariantIndex] = useState(0);
   const currentVariant = HERO_VARIANTS[heroVariantIndex];
-
 
   const [typedLine1, setTypedLine1] = useState(HERO_VARIANTS[0].line1);
   const [typedLine2, setTypedLine2] = useState(HERO_VARIANTS[0].line2);
@@ -191,7 +186,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, [heroVariantIndex, currentVariant.line1, currentVariant.line2]);
 
-
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroVariantIndex((prev) => (prev + 1) % HERO_VARIANTS.length);
@@ -202,7 +196,6 @@ export default function App() {
   const handleNextHeroIllustration = () => {
     setHeroVariantIndex((prev) => (prev + 1) % HERO_VARIANTS.length);
   };
-
 
   const [showDonorModal, setShowDonorModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -215,7 +208,7 @@ export default function App() {
 
   return (
     <div className="editorial-layout">
-      {/* Toast Notification */}
+      
       {toastMessage && (
         <div style={{
           position: 'fixed',
@@ -239,9 +232,8 @@ export default function App() {
         </div>
       )}
 
-      {/* First Section Covering 100svh */}
       <section className="hero-viewport-section">
-        {/* Navigation Bar */}
+        
         <nav className="editorial-nav">
           <Link to="/" className="editorial-logo">
             <img src="/bloodlink_logo.png" alt="BloodLink logo" className="editorial-logo-img" />
@@ -281,7 +273,6 @@ export default function App() {
           </div>
         </nav>
 
-        {/* Hero Section (Matching "The Art of Hiring" Reference Style) */}
         <header className="editorial-hero">
           <div className="hero-text-block">
             <h1 className="hero-main-heading">
@@ -326,7 +317,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Floating Editorial Character Illustrations with Visual Anchor Badge */}
           <div className="hero-illustration-wrapper">
             <div
               className="hero-illustration-area clickable-hero-slider"
@@ -351,7 +341,6 @@ export default function App() {
               ))}
             </div>
 
-            {/* Visual Anchor Caption Pill (Ties artwork directly into BloodLink message) */}
             <div
               className="illustration-caption-pill"
               onClick={handleNextHeroIllustration}
@@ -363,7 +352,6 @@ export default function App() {
         </header>
       </section>
 
-      {/* Impact Statistics Banner */}
       <section className="stats-banner-wrap">
         <div className="stats-inner-grid">
           <div className="stat-item-block">
@@ -392,7 +380,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* Why Your Donation Matters */}
       <section id="why-donate" className="content-section-wrap">
         <div className="editorial-section-head">
           <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#EF4E4E', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -437,7 +424,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* How It Works (Numbered Editorial Flow) */}
       <section id="how-it-works" style={{ backgroundColor: '#FFFFFF', padding: '88px 32px', borderTop: '1px solid var(--bg-card-border)', borderBottom: '1px solid var(--bg-card-border)' }}>
         <div className="content-section-wrap" style={{ padding: 0 }}>
           <div className="editorial-section-head">
@@ -478,7 +464,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* Blood Group Compatibility Guide */}
       <section id="blood-types" style={{ backgroundColor: '#FFFFFF', padding: '88px 32px', borderTop: '1px solid var(--bg-card-border)', borderBottom: '1px solid var(--bg-card-border)' }}>
         <div className="content-section-wrap" style={{ padding: 0 }}>
           <div className="editorial-section-head">
@@ -546,7 +531,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* Stories of Hope */}
       <section id="stories" className="content-section-wrap">
         <div className="editorial-section-head">
           <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#EF4E4E', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -587,7 +571,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* Frequently Asked Questions */}
       <section id="faq" className="content-section-wrap" style={{ paddingTop: 0 }}>
         <div className="editorial-section-head">
           <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#EF4E4E', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -620,7 +603,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* Modal 1: Register as a Blood Donor */}
       {showDonorModal && (
         <div className="editorial-modal-backdrop" onClick={() => setShowDonorModal(false)}>
           <div className="editorial-modal-card" onClick={(e) => e.stopPropagation()}>
@@ -687,7 +669,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Modal 2: Request Blood Urgently */}
       {showRequestModal && (
         <div className="editorial-modal-backdrop" onClick={() => setShowRequestModal(false)}>
           <div className="editorial-modal-card" onClick={(e) => e.stopPropagation()}>
@@ -748,7 +729,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Editorial Footer */}
       <footer className="editorial-footer-bar">
         <div className="footer-top-grid">
           <div>

@@ -5,13 +5,11 @@ import { MapPin, Navigation, RotateCcw, X, Check } from 'lucide-react';
 import gujaratGeoJson from '../assets/gujarat_districts_34.json';
 import '../styles/requester-map.css';
 
-// Exact Gujarat Bounding Box: covers entire Gujarat state
 const GUJARAT_BOUNDS = [
-  [20.1000, 68.1000], // South-West corner
-  [24.7000, 74.5000]  // North-East corner
+  [20.1000, 68.1000],
+  [24.7000, 74.5000]
 ];
 
-// District centers directory
 const DISTRICT_CENTERS = {
   'Ahmedabad': [23.0225, 72.5714],
   'Amreli': [21.6032, 71.2221],
@@ -49,7 +47,6 @@ const DISTRICT_CENTERS = {
   'Vav-Tharad': [24.3940, 71.6267]
 };
 
-// Custom Glowing Red Beacon Pin Icon
 const createEmergencyBeaconIcon = () => {
   return L.divIcon({
     className: 'emergency-custom-marker',
@@ -84,14 +81,12 @@ export default function LocationPickerModal({
   const [tempCity, setTempCity] = useState(initialCity || 'Ahmedabad');
   const [isLocating, setIsLocating] = useState(false);
 
-  // Helper: Clamp coordinate inside Gujarat State Box
   const clampToGujarat = (lat, lng) => {
     const clampedLat = Math.max(20.1000, Math.min(24.7000, lat));
     const clampedLng = Math.max(68.1000, Math.min(74.5000, lng));
     return [Number(clampedLat.toFixed(4)), Number(clampedLng.toFixed(4))];
   };
 
-  // Sync internal temp states when modal opens
   useEffect(() => {
     if (isOpen) {
       const startLat = initialLatitude || (initialCity && DISTRICT_CENTERS[initialCity] ? DISTRICT_CENTERS[initialCity][0] : 23.0225);
@@ -102,7 +97,6 @@ export default function LocationPickerModal({
     }
   }, [isOpen, initialCity, initialLatitude, initialLongitude]);
 
-  // Initialize Leaflet Map when Modal is opened
   useEffect(() => {
     if (!isOpen) return;
 
@@ -116,7 +110,6 @@ export default function LocationPickerModal({
       const startLat = tempLat || 23.0225;
       const startLng = tempLng || 72.5714;
 
-      // 1. Create Leaflet map with comfortable overview zoom
       const map = L.map(mapContainerRef.current, {
         center: [22.4, 71.4],
         zoom: 6.8,
@@ -126,7 +119,6 @@ export default function LocationPickerModal({
         attributionControl: false
       });
 
-      // 2. Render Gujarat 34 District Vector Polygons in Black / Dark Theme
       const geoLayer = L.geoJSON(gujaratGeoJson, {
         style: (feature) => {
           const isMatched = tempCity && feature.properties.district.toLowerCase() === tempCity.toLowerCase();
@@ -178,14 +170,12 @@ export default function LocationPickerModal({
         }
       }).addTo(map);
 
-      // 3. Add Draggable Glowing Emergency Pin
       const marker = L.marker([startLat, startLng], {
         icon: createEmergencyBeaconIcon(),
         draggable: true,
         autoPan: true
       }).addTo(map);
 
-      // Handle Drag End
       marker.on('dragend', () => {
         const pos = marker.getLatLng();
         const [cLat, cLng] = clampToGujarat(pos.lat, pos.lng);
@@ -194,7 +184,6 @@ export default function LocationPickerModal({
         setTempLng(cLng);
       });
 
-      // 4. Click anywhere on the map
       map.on('click', (e) => {
         const { lat, lng } = e.latlng;
         const [cLat, cLng] = clampToGujarat(lat, lng);
@@ -207,7 +196,6 @@ export default function LocationPickerModal({
       geoLayerRef.current = geoLayer;
       markerRef.current = marker;
 
-      // Invalidate size to guarantee perfect rendering inside modal
       map.invalidateSize();
       map.fitBounds(GUJARAT_BOUNDS, { padding: [24, 24] });
     }, 60);
@@ -223,7 +211,6 @@ export default function LocationPickerModal({
     };
   }, [isOpen]);
 
-  // Handle Current Location button
   const handleCurrentLocation = () => {
     setIsLocating(true);
     if (navigator.geolocation) {
@@ -262,14 +249,12 @@ export default function LocationPickerModal({
     }
   };
 
-  // Recenter Gujarat
   const handleResetGujarat = () => {
     if (mapInstanceRef.current) {
       mapInstanceRef.current.fitBounds(GUJARAT_BOUNDS, { padding: [16, 16], duration: 0.6 });
     }
   };
 
-  // Confirm and save location to form
   const handleConfirm = () => {
     if (onConfirm) {
       onConfirm({
@@ -288,8 +273,7 @@ export default function LocationPickerModal({
   return (
     <div className="location-modal-backdrop" onClick={onClose}>
       <div className="location-modal-window" onClick={(e) => e.stopPropagation()}>
-        
-        {/* Header */}
+
         <div className="location-modal-header">
           <div className="location-modal-title-row">
             <div className="location-modal-icon-badge">
@@ -336,10 +320,8 @@ export default function LocationPickerModal({
           </div>
         </div>
 
-        {/* Black Gujarat Vector Map Body */}
         <div ref={mapContainerRef} className="location-modal-map-body" />
 
-        {/* Footer */}
         <div className="location-modal-footer">
           <div className="modal-footer-coords-badge">
             <span className="modal-footer-dot"></span>

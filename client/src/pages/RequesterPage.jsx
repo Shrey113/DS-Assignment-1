@@ -71,7 +71,6 @@ export default function RequesterPage() {
   const [activeToken, setActiveToken] = useState(null);
   const activeTokenRef = useRef(null);
 
-  // 100% Real-time Socket.io Connection & Token Listener
   useEffect(() => {
     const s = io('http://localhost:5100');
     setSocket(s);
@@ -80,18 +79,15 @@ export default function RequesterPage() {
       console.log('[Socket.io] Connected to BloodLink Queue Server:', s.id);
     });
 
-    // Step 2: Receive unique queue token immediately after send_request
     s.on('send_queue_token_id', (tokenData) => {
       console.log('[Socket.io] Queue Token Assigned:', tokenData.tokenId);
       activeTokenRef.current = tokenData.tokenId;
       setActiveToken(tokenData);
     });
 
-    // Step 3: Receive dispatched result with strict Token Verification
     s.on('send_result', (data) => {
       console.log('[Socket.io] Requisition dispatched for Token:', data.tokenId);
 
-      // Verify that the incoming result matches OUR assigned token
       if (data.tokenId === activeTokenRef.current) {
         setDispatchResult(data);
         setSubmittedCoords({
@@ -107,7 +103,6 @@ export default function RequesterPage() {
     return () => s.disconnect();
   }, [latitude, longitude]);
 
-  // Live 3D Array query whenever city and bloodGroup are selected
   useEffect(() => {
     if (city && bloodGroup) {
       fetch(`http://localhost:5100/api/ds/get-donors/${encodeURIComponent(city)}/${encodeURIComponent(bloodGroup)}`)
@@ -125,7 +120,6 @@ export default function RequesterPage() {
     }
   }, [city, bloodGroup]);
 
-  // Quick random auto-fill for testing
   const handleAutoFill = () => {
     const data = getRandomRequesterData();
     setPatientName(data.patientName);
@@ -140,7 +134,6 @@ export default function RequesterPage() {
     setErrors({});
   };
 
-  // Validate individual field on blur (when user focuses out)
   const handleBlur = (field) => {
     let errorMsg = '';
     if (field === 'patientName') errorMsg = validatePatientName(patientName);
@@ -155,7 +148,6 @@ export default function RequesterPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validate all fields on submit
     const allErrors = {
       patientName: validatePatientName(patientName),
       hospital: validateHospital(hospital),
@@ -166,7 +158,6 @@ export default function RequesterPage() {
 
     setErrors(allErrors);
 
-    // If any error exists, stop form submission
     const hasError = Object.values(allErrors).some((msg) => msg !== '');
     if (hasError) {
       return;
@@ -181,7 +172,6 @@ export default function RequesterPage() {
     setActiveToken(null);
     setIsSubmitting(true);
 
-    // Step 1: 100% Socket.io Requisition Submission
     socket.emit('send_request', {
       patientName,
       hospital,
@@ -202,16 +192,13 @@ export default function RequesterPage() {
     <div className="portal-page-layout">
       <PortalHeader pageTitle="Requester" />
 
-      {/* Main 100svh Content Split - Clean 2-Column Layout */}
       <main className="donor-split-grid">
 
-        {/* ── LEFT: Form Column ─────────────────────────── */}
         <div className="donor-form-side">
           <div className="donor-form-card">
             {dispatchResult ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-                {/* ── BOX 1: Matched Blood Bank Depot ─────────────── */}
                 <div style={{
                   background: '#FFFFFF',
                   border: '1px solid #E2E8F0',
@@ -294,7 +281,6 @@ export default function RequesterPage() {
                     </div>
                   </div>
 
-                  {/* Direct Contact Buttons */}
                   <div style={{ display: 'flex', gap: '10px', marginTop: '2px' }}>
                     {dispatchResult.matchedDepot?.emergencyPhone && (
                       <a
@@ -344,7 +330,6 @@ export default function RequesterPage() {
                   </div>
                 </div>
 
-                {/* ── BOX 2: Voluntary Donors ──────────────────────── */}
                 <div style={{
                   background: '#FFFFFF',
                   border: '1px solid #E2E8F0',
@@ -446,7 +431,6 @@ export default function RequesterPage() {
                   </div>
                 </div>
 
-                {/* Reset Action */}
                 <div style={{ textAlign: 'center', paddingTop: '4px' }}>
                   <button
                     type="button"
@@ -476,7 +460,7 @@ export default function RequesterPage() {
               </div>
             ) : (
               <>
-                {/* Card Header */}
+                
                 <div className="donor-card-top">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h2 className="donor-card-heading">
@@ -510,10 +494,8 @@ export default function RequesterPage() {
                 <form onSubmit={handleSubmit} className="donor-fields-stack">
                   <div className="donor-form-columns">
 
-                    {/* Left Column: Patient & Hospital Logistics */}
                     <div className="donor-form-col donor-col-left">
 
-                      {/* Patient Name */}
                       <div className="donor-field-group">
                         <label className="donor-field-label">Patient Full Name</label>
                         <input
@@ -537,7 +519,6 @@ export default function RequesterPage() {
                         </div>
                       </div>
 
-                      {/* Hospital & ICU Ward */}
                       <div className="donor-field-group">
                         <label className="donor-field-label">Hospital & ICU Ward</label>
                         <input
@@ -561,7 +542,6 @@ export default function RequesterPage() {
                         </div>
                       </div>
 
-                      {/* City Depot */}
                       <div className="donor-field-group">
                         <label className="donor-field-label">City Depot / Region</label>
                         <select
@@ -590,9 +570,6 @@ export default function RequesterPage() {
                         </div>
                       </div>
 
-
-
-                      {/* Units Needed */}
                       <div className="donor-field-group">
                         <div className="donor-label-between">
                           <label className="donor-field-label">Units Needed</label>
@@ -625,7 +602,6 @@ export default function RequesterPage() {
                         </div>
                       </div>
 
-                      {/* Hospital / Incident Location (GPS) - Left Side */}
                       <div className="donor-field-group">
                         <label className="donor-field-label">Hospital / Incident Location (GPS)</label>
                         <button
@@ -649,10 +625,8 @@ export default function RequesterPage() {
 
                     </div>
 
-                    {/* Right Column: Blood Group, Urgency & Target */}
                     <div className="donor-form-col donor-col-right">
 
-                      {/* Blood Group Required */}
                       <div className="donor-field-group">
                         <div className="donor-label-between">
                           <label className="donor-field-label">Blood Group Required</label>
@@ -696,7 +670,6 @@ export default function RequesterPage() {
                         </div>
                       </div>
 
-                      {/* Emergency Priority */}
                       <div className="donor-field-group">
                         <label className="donor-field-label">Emergency Priority Triage (24-Hour)</label>
                         <div className="requester-urgency-stack">
@@ -731,7 +704,6 @@ export default function RequesterPage() {
 
                   </div>
 
-                  {/* Submit Button */}
                   <button type="submit" disabled={isSubmitting} className="donor-submit-btn">
                     {isSubmitting && <span className="btn-spinner" />}
                     <span>
@@ -752,7 +724,6 @@ export default function RequesterPage() {
           </div>
         </div>
 
-        {/* ── RIGHT: Full Clinic Scene Artwork (Clean, by default) ─── */}
         <div className="donor-art-side">
           <div className="donor-art-glow-bg"></div>
           <img
@@ -764,7 +735,6 @@ export default function RequesterPage() {
 
       </main>
 
-      {/* ── Location Picker Modal Dialog ─── */}
       <LocationPickerModal
         isOpen={isMapModalOpen}
         initialCity={city}
@@ -781,7 +751,6 @@ export default function RequesterPage() {
         onClose={() => setIsMapModalOpen(false)}
       />
 
-      {/* Layered bottom waves grounding the page */}
       <div className="donor-bottom-waves" aria-hidden="true">
         <svg viewBox="0 0 1440 70" fill="none" preserveAspectRatio="none">
           <path
@@ -809,7 +778,6 @@ export default function RequesterPage() {
         </svg>
       </div>
 
-      {/* Floating Bottom-Right Auto-Fill Button */}
       <button
         type="button"
         onClick={handleAutoFill}

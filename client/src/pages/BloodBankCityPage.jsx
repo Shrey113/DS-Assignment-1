@@ -44,8 +44,6 @@ export default function BloodBankCityPage() {
       />
 
       <main className="bb-page-content">
-
-        {/* Stack of Blood Bank Cards in this City */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#8E9690' }}>
             <RefreshCw size={24} className="spin-slow" style={{ animation: 'spin 1s linear infinite' }} />

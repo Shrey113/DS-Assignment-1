@@ -1,7 +1,3 @@
-/* ═════════════════════════════════════════════════════════════════
-   PORTAL-PAGES.CSS - 100svh Fixed Portals (Donor, Requester)
-   ═════════════════════════════════════════════════════════════════ */
-
 .portal-page-layout {
   height: 100svh;
   max-height: 100svh;
@@ -13,7 +9,6 @@
   box-sizing: border-box;
 }
 
-/* Main 100svh Split Grid */
 .portal-main-grid {
   flex: 1;
   max-width: 1400px;
@@ -29,7 +24,6 @@
   overflow: hidden;
 }
 
-/* Left Form & Control Column */
 .portal-form-column {
   display: flex;
   flex-direction: column;
@@ -38,7 +32,6 @@
   justify-content: center;
 }
 
-/* Form Card Header (Clean & Compact) */
 .form-card-header {
   display: flex;
   align-items: center;
@@ -73,7 +66,6 @@
   color: var(--text-tertiary);
 }
 
-/* Card Form Container */
 .portal-card-form {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(35, 40, 36, 0.08);
@@ -85,7 +77,6 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
-/* Decreased Width & Increased Height Form */
 .donor-form-vertical {
   width: 100%;
   max-width: 470px;
@@ -159,7 +150,6 @@
   border-color: var(--coral-accent);
 }
 
-/* Compact Blood Group Chips - 2 rows of 4 */
 .blood-type-grid-small {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -196,7 +186,6 @@
   transform: translateY(-1.5px);
 }
 
-/* Urgency Selector */
 .urgency-selector-row {
   display: flex;
   flex-direction: column;
@@ -253,7 +242,6 @@
   color: #3730A3;
 }
 
-/* Units Stepper Control */
 .units-stepper-control {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -280,7 +268,6 @@
   border-color: var(--text-primary);
 }
 
-/* Live Dynamic Donor Pass Preview Bar */
 .donor-pass-preview-bar {
   display: flex;
   align-items: center;
@@ -348,7 +335,6 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
-/* Right Art Column */
 .portal-art-column {
   display: flex;
   flex-direction: column;
@@ -441,11 +427,6 @@
   color: var(--text-secondary);
 }
 
-/* ═════════════════════════════════════════════════════════════════
-   DONOR PAGE REDESIGN - Improved Composition & Visual Structure
-   ═════════════════════════════════════════════════════════════════ */
-
-/* Overall 2-column split */
 .donor-split-grid {
   flex: 1;
   display: grid;
@@ -460,7 +441,6 @@
   z-index: 1;
 }
 
-/* ── Left: Form Card (Expanded Width) ─────────────────────── */
 .donor-form-side {
   display: flex;
   align-items: center;
@@ -485,7 +465,6 @@
   box-sizing: border-box;
 }
 
-/* Card top: heading + subtitle */
 .donor-card-top {
   display: flex;
   flex-direction: column;
@@ -514,7 +493,6 @@
   margin: 2px 0 0;
 }
 
-/* Form fields stack - increased gaps */
 .donor-fields-stack {
   display: flex;
   flex-direction: column;
@@ -669,20 +647,17 @@ select.donor-field-select option[value=""] {
   color: var(--text-tertiary);
 }
 
-/* ── Blood group inside donor card ────────── */
 .donor-blood-grid {
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 
-/* ── Age & weight side by side ───────────── */
 .donor-row-two {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
 
-/* ── Availability Days (Multi-select) ─────── */
 .donor-days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -719,7 +694,6 @@ select.donor-field-select option[value=""] {
   transform: translateY(-1px);
 }
 
-/* ── Preferred Time Slots ─────────────────── */
 .donor-slots-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -773,7 +747,6 @@ select.donor-field-select option[value=""] {
   color: #B83232;
 }
 
-/* ── Submit button (Spicy Gradient & Interaction) ────────── */
 .donor-submit-btn {
   width: 100%;
   padding: 13.5px 22px;
@@ -839,7 +812,6 @@ select.donor-field-select option[value=""] {
   flex-shrink: 0;
 }
 
-/* ── Right: Full Clinic Scene Illustration ── */
 .donor-art-side {
   position: relative;
   display: flex;
@@ -852,7 +824,6 @@ select.donor-field-select option[value=""] {
   z-index: 1;
 }
 
-/* Soft peach-to-cream radial glow behind artwork */
 .donor-art-glow-bg {
   position: absolute;
   top: 50%;
@@ -872,7 +843,6 @@ select.donor-field-select option[value=""] {
   filter: blur(14px);
 }
 
-/* Full scene illustration */
 .donor-art-img {
   width: 100%;
   max-width: 640px;
@@ -884,7 +854,6 @@ select.donor-field-select option[value=""] {
   filter: drop-shadow(0 14px 34px rgba(239, 78, 78, 0.08));
 }
 
-/* ── Bottom Organic Layered Wave ── */
 .donor-bottom-waves {
   position: absolute;
   bottom: 0;
@@ -902,11 +871,6 @@ select.donor-field-select option[value=""] {
   display: block;
 }
 
-/* ═════════════════════════════════════════════════════════════════
-   REQUESTER PAGE ENHANCEMENTS - Matching Clean Donor Aesthetics
-   ═════════════════════════════════════════════════════════════════ */
-
-/* ── Requester Units Grid ─────────────────── */
 .requester-units-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -942,7 +906,6 @@ select.donor-field-select option[value=""] {
   transform: translateY(-1px);
 }
 
-/* ── Professional Emergency Priority Triage Stack ── */
 .requester-urgency-stack {
   display: flex;
   flex-direction: column;
@@ -1057,7 +1020,6 @@ select.donor-field-select option[value=""] {
   text-overflow: ellipsis;
 }
 
-/* ── Active States ── */
 .requester-priority-card.critical.active {
   background: #FFF7F6;
   border-color: #EF4E4E;
@@ -1142,7 +1104,6 @@ select.donor-field-select option[value=""] {
   color: #64748B;
 }
 
-/* ── Requester Compatibility Inline Hint ──── */
 .requester-compat-hint {
   display: flex;
   align-items: center;
@@ -1172,7 +1133,6 @@ select.donor-field-select option[value=""] {
   letter-spacing: 0.02em;
 }
 
-/* ── Emergency Dispatch Handover Card (Stage 1 & 2 Output) ── */
 .dispatch-handover-card {
   display: flex;
   flex-direction: column;
@@ -1261,7 +1221,6 @@ select.donor-field-select option[value=""] {
   border-radius: 5px;
 }
 
-/* Verified Stock Bar */
 .handover-stock-banner {
   display: flex;
   align-items: center;
@@ -1287,7 +1246,6 @@ select.donor-field-select option[value=""] {
   font-weight: 500;
 }
 
-/* Click to Call Action Grid */
 .handover-hotlines-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1342,7 +1300,6 @@ select.donor-field-select option[value=""] {
   margin-top: 2px;
 }
 
-/* Bottom Voluntary Reserve Banner & Reset */
 .handover-footer-row {
   display: flex;
   align-items: center;
@@ -1376,7 +1333,6 @@ select.donor-field-select option[value=""] {
   color: #DC2626;
 }
 
-/* Floating Bottom-Right Auto-Fill Test Button */
 .auto-fill-btn {
   position: fixed;
   bottom: 22px;
@@ -1404,7 +1360,6 @@ select.donor-field-select option[value=""] {
   box-shadow: 0 4px 18px rgba(239, 78, 78, 0.35);
 }
 
-/* Donor Success Center Box State */
 .donor-success-state {
   flex: 1;
   display: flex;

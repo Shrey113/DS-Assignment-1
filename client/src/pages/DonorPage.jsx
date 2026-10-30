@@ -41,7 +41,6 @@ export default function DonorPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [matrixRefresh, setMatrixRefresh] = useState(0);
 
-  // Quick random auto-fill for testing
   const handleAutoFill = () => {
     const data = getRandomDonorData();
     setName(data.name);
@@ -58,7 +57,6 @@ export default function DonorPage() {
     setErrors({});
   };
 
-  // Reset form to add another donor entry
   const handleNewEntry = () => {
     setName('');
     setEmail('');
@@ -75,7 +73,6 @@ export default function DonorPage() {
     setIsRegistered(false);
   };
 
-  // Validate individual field on blur (when user leaves input)
   const handleBlur = (field) => {
     let errorMsg = '';
     if (field === 'name') errorMsg = validateFullName(name);
@@ -99,7 +96,6 @@ export default function DonorPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validate all fields on submit
     const allErrors = {
       name: validateFullName(name),
       email: validateEmail(email),
@@ -113,13 +109,11 @@ export default function DonorPage() {
 
     setErrors(allErrors);
 
-    // If any error exists, stop form submission
     const hasError = Object.values(allErrors).some((msg) => msg !== '');
     if (hasError) {
       return;
     }
 
-    // Send donor data to MySQL backend via 3D Array DS API
     fetch('http://localhost:5100/api/ds/add-donors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -147,7 +141,6 @@ export default function DonorPage() {
       });
   };
 
-  // Today's date YYYY-MM-DD in local time: user cannot select future dates (e.g. today is 20, cannot select 21 onwards)
   const today = new Date();
   const maxDonationDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
@@ -157,11 +150,9 @@ export default function DonorPage() {
 
       <main className="donor-split-grid">
 
-        {/* ── LEFT: Form Column (Expanded Width) ─────────────────────────── */}
         <div className="donor-form-side">
           <div className="donor-form-card">
 
-            {/* Card Header */}
             <div className="donor-card-top">
               <h2 className="donor-card-heading">Become a donor<span className="coral-dot">.</span></h2>
               <p className="donor-card-sub">Your voluntary profile coordinates critical emergency matches.</p>
@@ -190,10 +181,8 @@ export default function DonorPage() {
               <form onSubmit={handleSubmit} className="donor-fields-stack">
               <div className="donor-form-columns">
 
-                {/* Left Column: Personal & Contact */}
                 <div className="donor-form-col donor-col-left">
 
-                  {/* Name */}
                   <div className="donor-field-group">
                     <label className="donor-field-label">Full Name</label>
                     <input
@@ -217,7 +206,6 @@ export default function DonorPage() {
                     </div>
                   </div>
 
-                  {/* Email Address */}
                   <div className="donor-field-group">
                     <label className="donor-field-label">Email Address</label>
                     <input
@@ -241,7 +229,6 @@ export default function DonorPage() {
                     </div>
                   </div>
 
-                  {/* Contact Number */}
                   <div className="donor-field-group">
                     <label className="donor-field-label">Contact Number</label>
                     <input
@@ -265,7 +252,6 @@ export default function DonorPage() {
                     </div>
                   </div>
 
-                  {/* Age & Weight inline */}
                   <div className="donor-row-two">
                     <div className="donor-field-group">
                       <label className="donor-field-label">Age</label>
@@ -316,7 +302,6 @@ export default function DonorPage() {
                     </div>
                   </div>
 
-                  {/* City */}
                   <div className="donor-field-group">
                     <label className="donor-field-label">City Depot</label>
                     <select
@@ -346,9 +331,8 @@ export default function DonorPage() {
                   </div>
                 </div>
 
-                {/* Right Column: Blood, Last Donation & Availability */}
                 <div className="donor-form-col donor-col-right">
-                  {/* Blood Group */}
+                  
                   <div className="donor-field-group">
                     <label className="donor-field-label">Blood Group</label>
                     <div className="blood-type-grid-small donor-blood-grid">
@@ -376,7 +360,6 @@ export default function DonorPage() {
                     </div>
                   </div>
 
-                  {/* Last Donation Date */}
                   <div className="donor-field-group">
                     <div className="donor-label-between">
                       <label className="donor-field-label">Last Donation Date</label>
@@ -426,7 +409,6 @@ export default function DonorPage() {
                     </div>
                   </div>
 
-                  {/* Availability Days (Multiple selection) */}
                   <div className="donor-field-group">
                     <div className="donor-label-between">
                       <label className="donor-field-label">Availability Days</label>
@@ -449,7 +431,6 @@ export default function DonorPage() {
                     </div>
                   </div>
 
-                  {/* Preferred Time Slot */}
                   <div className="donor-field-group">
                     <label className="donor-field-label">Preferred Time Slot</label>
                     <div className="donor-slots-grid">
@@ -473,7 +454,6 @@ export default function DonorPage() {
 
               </div>
 
-              {/* Submit & Toast */}
               <button type="submit" className="donor-submit-btn">
                 <span>Register as a voluntary donor</span>
                 <span className="btn-arrow-icon">→</span>
@@ -483,12 +463,10 @@ export default function DonorPage() {
           </div>
         </div>
 
-        {/* ── RIGHT: Full Clinic Scene Illustration ─── */}
         <div className="donor-art-side">
-          {/* Soft ambient peach glow */}
+          
           <div className="donor-art-glow-bg"></div>
 
-          {/* Full Clinic Scene Artwork */}
           <img
             src="/illustrations/donor/donor_portal_art.png"
             alt="Voluntary blood donation clinic scene"
@@ -498,7 +476,6 @@ export default function DonorPage() {
 
       </main>
 
-      {/* Layered bottom waves grounding the page */}
       <div className="donor-bottom-waves" aria-hidden="true">
         <svg viewBox="0 0 1440 70" fill="none" preserveAspectRatio="none">
           <path
@@ -526,7 +503,6 @@ export default function DonorPage() {
         </svg>
       </div>
 
-      {/* Floating Bottom-Right Auto-Fill Button */}
       <button
         type="button"
         onClick={handleAutoFill}

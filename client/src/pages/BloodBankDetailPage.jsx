@@ -69,7 +69,6 @@ export default function BloodBankDetailPage() {
           </div>
         ) : (
           <div className="bb-depot-detail-layout">
-            {/* Depot Identification Card */}
             <section className="bb-depot-header-card">
               <div className="bb-depot-header-top">
                 <div className="bb-depot-title-group">
@@ -95,7 +94,6 @@ export default function BloodBankDetailPage() {
                 </div>
               </div>
 
-              {/* Direct Calling & Helpline Strip */}
               <div className="bb-depot-action-buttons">
                 <a href={`tel:${bank.emergency_phone}`} className="bb-btn-call emergency-red">
                   <Phone size={15} />
@@ -110,7 +108,6 @@ export default function BloodBankDetailPage() {
               </div>
             </section>
 
-            {/* Cold Storage Reserve Inventory Box */}
             <section className="bb-inventory-card">
               <div className="bb-inventory-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

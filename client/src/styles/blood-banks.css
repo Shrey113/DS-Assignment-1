@@ -24,7 +24,6 @@
   --bb-shadow-lg: 0 16px 36px rgba(28, 32, 29, 0.08);
 }
 
-
 .bb-page-container {
   min-height: 100vh;
   background-color: var(--bb-bg-primary);
@@ -41,7 +40,6 @@
   margin: 0 auto;
   padding: 32px 24px 64px 24px;
 }
-
 
 .bb-breadcrumb-bar {
   display: flex;
@@ -97,7 +95,6 @@
   color: var(--bb-text-primary);
   border-color: var(--bb-border-strong);
 }
-
 
 .bb-hero-banner {
   background: linear-gradient(135deg, #FFFFFF 0%, #FAF6F3 100%);
@@ -158,7 +155,6 @@
   max-width: 760px;
   line-height: 1.5;
 }
-
 
 .bb-metrics-row {
   display: flex;
@@ -221,7 +217,6 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-
 
 .bb-toolbar {
   display: flex;
@@ -291,7 +286,6 @@
   color: #FFFFFF;
   border-color: var(--bb-text-primary);
 }
-
 
 .bb-cities-grid {
   display: grid;
@@ -371,7 +365,6 @@
   padding: 3px 8px;
   border-radius: 6px;
 }
-
 
 .bb-banks-stack {
   display: flex;
@@ -506,7 +499,6 @@
   font-weight: 700;
 }
 
-
 .bb-stock-chips-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -565,7 +557,6 @@
 .bb-stock-chip.critical .bb-stock-status-text {
   color: var(--bb-red);
 }
-
 
 .bb-depot-detail-layout {
   display: grid;
@@ -659,7 +650,6 @@
 .bb-btn-call.emergency-red:hover {
   background: var(--bb-red-dark);
 }
-
 
 .bb-inventory-card {
   background: #FFFFFF;
@@ -794,7 +784,6 @@
   }
 }
 
-
 .bb-depot-two-col {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
@@ -828,7 +817,6 @@
   color: var(--bb-text-primary);
   margin: 0;
 }
-
 
 .bb-req-stack {
   display: flex;
@@ -905,7 +893,6 @@
   background: #F4F1ED;
   color: var(--bb-text-secondary);
 }
-
 
 .bb-donors-widget-content {
   display: flex;

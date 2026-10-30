@@ -7,7 +7,6 @@ export default function PortalHeader({ pageTitle, breadcrumbs }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Determine current active page name for breadcrumb
   const currentPath = location.pathname;
   const pageName = pageTitle || (
     currentPath === '/donor' ? 'Donor' :
@@ -16,7 +15,6 @@ export default function PortalHeader({ pageTitle, breadcrumbs }) {
     currentPath.startsWith('/blood-banks') ? 'Blood Banks' : 'Portal'
   );
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -27,7 +25,6 @@ export default function PortalHeader({ pageTitle, breadcrumbs }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Dropdown options based on current route
   const getDropdownLinks = () => {
     const allLinks = [
       { to: '/', label: 'Home', icon: Home },
@@ -43,7 +40,6 @@ export default function PortalHeader({ pageTitle, breadcrumbs }) {
 
   return (
     <header className="portal-header">
-      {/* Left: {Logo} BloodLink / Breadcrumbs */}
       <div className="portal-header-left">
         <Link to="/" className="editorial-logo">
           <img src="/bloodlink_logo.png" alt="BloodLink logo" className="editorial-logo-img" />
@@ -71,7 +67,6 @@ export default function PortalHeader({ pageTitle, breadcrumbs }) {
         )}
       </div>
 
-      {/* Right: Switch Portal Button with Dropdown */}
       <div className="portal-header-right" ref={dropdownRef}>
         <button
           type="button"
