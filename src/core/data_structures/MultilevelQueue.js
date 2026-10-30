@@ -2,9 +2,9 @@ import Queue from './Queue.js';
 
 class MultilevelQueue {
     constructor() {
-        this.critical = new Queue();   // Tier 1: Immediate (< 1h)
-        this.urgent = new Queue();     // Tier 2: Within 4h
-        this.scheduled = new Queue();  // Tier 3: Within 24h
+        this.critical = new Queue();
+        this.urgent = new Queue();
+        this.scheduled = new Queue();
     }
 
     enqueue(req) {
@@ -28,12 +28,10 @@ class MultilevelQueue {
         return null;
     }
 
-    // Adds a requisition to the queue (Tier 1, Tier 2, or Tier 3)
     add_queue(req) {
         return this.enqueue(req);
     }
 
-    // Checks if all 3 priority queues are empty
     isEmpty() {
         return this.critical.isEmpty() && this.urgent.isEmpty() && this.scheduled.isEmpty();
     }

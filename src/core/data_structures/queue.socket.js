@@ -57,22 +57,18 @@ export function setupQueueSocket(io) {
   io.on('connection', (socket) => {
     console.log(`[Socket.io] Client connected: ${socket.id}`);
 
-    // STEP 1: Client submits request -> emits 'send_request'
     socket.on('send_request', async (payload) => {
-      // Generate Unique Queue Ticket Token ID based on urgency and timestamp
       const tierPrefix = (payload.urgency || 'CRITICAL').substring(0, 4).toUpperCase();
       const tokenId = `TOKEN-${tierPrefix}-${Date.now().toString().slice(-4)}-${Math.floor(100 + Math.random() * 900)}`;
 
       console.log(`[Socket.io] Ingestion: ${payload.patientName} -> Assigned Token: ${tokenId}`);
 
-      // Add to Multilevel Queue with Token ID
       triageMLQ.add_queue({
         ...payload,
         tokenId,
         socketId: socket.id
       });
 
-      // STEP 2: Immediately emit unique token back to client so UI shows waiting progress
       socket.emit('send_queue_token_id', {
         tokenId,
         urgency: payload.urgency || 'CRITICAL',
@@ -80,22 +76,17 @@ export function setupQueueSocket(io) {
         message: 'Requisition queued successfully. Awaiting priority dispatch.'
       });
 
-      // STEP 3: Queue processing delay (1000ms priority processing window)
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // STEP 4: Drain queue in strict priority order (Critical -> Urgent -> Scheduled)
       while (!triageMLQ.isEmpty()) {
         const { request, triage } = triageMLQ.dequeue();
 
-        // Match nearest depot using GPS coordinates
         const matchedDepot = await findNearestBloodBank(request);
 
-        // Direct 3D Donor Array in-memory lookup
         const cityDonors = donorManager.donors[request.city] || {};
         const backupDonorsCount = Object.values(cityDonors).reduce((s, list) => s + (list?.length || 0), 0) || 14;
         const topDonors = donorManager.get_best_3_option(request.city, request.bloodGroup);
 
-        // Save record to MySQL
         const pool = getPool();
         const [insertResult] = await pool.query(`
           INSERT INTO requests (patient_name, hospital, city, blood_group, units, urgency, is_immediate, latitude, longitude, status)
@@ -127,7 +118,6 @@ export function setupQueueSocket(io) {
           topDonors
         };
 
-        // STEP 5: Emit 'send_result' paired with the exact tokenId
         if (request.socketId) {
           io.to(request.socketId).emit('send_result', resultPayload);
         } else {

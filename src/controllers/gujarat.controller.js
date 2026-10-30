@@ -1,18 +1,10 @@
 import { getPool } from '../config/db.js';
 import { GUJARAT_DISTRICTS_34, resolveDistrict } from '../constants/districts.js';
 
-/**
- * Fetch aggregated donor statistics for all 34 Gujarat districts.
- * Calculates dynamic availability based on:
- * 1. Medical Cooldown: >= 90 days since last donation (or first-time donor).
- * 2. Real-time Slot: Preferred time slot matches current hour (or flexible 24/7).
- * Handled by: GET /api/gujarat/districts
- */
 export async function getDistrictStats(req, res, next) {
   try {
     const pool = getPool();
 
-    // Fetch donors data needed for dynamic availability and district aggregation
     const [rows] = await pool.query(`
       SELECT 
         city,
@@ -24,7 +16,6 @@ export async function getDistrictStats(req, res, next) {
       FROM donors
     `);
 
-    // Determine current local time in India (IST / local clock)
     const now = new Date();
     const currentHour = now.getHours();
 
@@ -37,7 +28,6 @@ export async function getDistrictStats(req, res, next) {
       currentSlot = 'evening';
     }
 
-    // Initialize 34 districts structure
     const districtStats = {};
     for (const d of GUJARAT_DISTRICTS_34) {
       districtStats[d] = {
@@ -85,7 +75,6 @@ export async function getDistrictStats(req, res, next) {
       d.totalDonors += 1;
       overallTotal += 1;
 
-      // 1. Dynamic Medical Cooldown Check:
       let isMedicallyEligible = false;
       if (row.is_first_time === 1 || !row.last_donated_date) {
         isMedicallyEligible = true;
@@ -104,11 +93,9 @@ export async function getDistrictStats(req, res, next) {
         d.medicallyEligible += 1;
       }
 
-      // 2. Real-Time Preferred Slot Check:
       const slot = (row.preferred_slot || 'flexible').toLowerCase();
       const isSlotActive = (slot === 'flexible') || (slot === currentSlot);
 
-      // 3. Combined Dynamic Availability:
       const isAvailableNow = isMedicallyEligible && isSlotActive;
       if (isAvailableNow) {
         d.availableDonors += 1;
@@ -143,4 +130,3 @@ export async function getDistrictStats(req, res, next) {
     next(error);
   }
 }
-

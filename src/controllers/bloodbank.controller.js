@@ -1,16 +1,10 @@
 import { getPool } from '../config/db.js';
 import { GUJARAT_DISTRICTS_34, resolveDistrict } from '../constants/districts.js';
 
-/**
- * GET /api/blood-banks
- * Returns summary of all 34 districts/cities with their blood bank count,
- * total cold storage units, and stock health.
- */
 export async function getAllCitiesBloodBanks(req, res, next) {
   try {
     const pool = getPool();
 
-    // Query all blood banks ordered by city and bank_code
     const [rows] = await pool.query(`
       SELECT 
         id, bank_code, name, city, category, address, contact_phone, emergency_phone, operating_hours,
@@ -21,7 +15,6 @@ export async function getAllCitiesBloodBanks(req, res, next) {
       ORDER BY city ASC, bank_code ASC;
     `);
 
-    // Group by city
     const cityMap = {};
     for (const dist of GUJARAT_DISTRICTS_34) {
       cityMap[dist] = {
@@ -80,7 +73,6 @@ export async function getAllCitiesBloodBanks(req, res, next) {
     }
 
     const cityList = Object.values(cityMap).map(c => {
-      // Find critical groups (< 15 units across city)
       const criticalGroups = [];
       if (c.stocks.o_neg < 15) criticalGroups.push('O-');
       if (c.stocks.ab_neg < 15) criticalGroups.push('AB-');
@@ -109,18 +101,12 @@ export async function getAllCitiesBloodBanks(req, res, next) {
   }
 }
 
-/**
- * GET /api/blood-banks/city/:city
- * Returns all blood banks in the specified city, plus local registered donors count
- * and local emergency requisitions.
- */
 export async function getBloodBanksByCity(req, res, next) {
   try {
     const rawCity = req.params.city || '';
     const resolvedCity = resolveDistrict(rawCity);
     const pool = getPool();
 
-    // 1. Fetch blood banks in this city
     const [banks] = await pool.query(`
       SELECT 
         id, bank_code, name, city, category, address, contact_phone, emergency_phone, operating_hours,
@@ -132,7 +118,6 @@ export async function getBloodBanksByCity(req, res, next) {
       ORDER BY bank_code ASC;
     `, [resolvedCity, rawCity]);
 
-    // 2. Fetch local registered donors count for backup in this city
     const [donorCountRows] = await pool.query(`
       SELECT COUNT(*) as donor_count 
       FROM donors 
@@ -140,7 +125,6 @@ export async function getBloodBanksByCity(req, res, next) {
     `, [resolvedCity, rawCity]);
     const donorCount = donorCountRows[0]?.donor_count || 0;
 
-    // 3. Compute city aggregates
     const cityTotals = {
       bank_count: banks.length,
       total_units: banks.reduce((sum, b) => sum + (b.total_units || 0), 0),
@@ -169,10 +153,6 @@ export async function getBloodBanksByCity(req, res, next) {
   }
 }
 
-/**
- * GET /api/blood-banks/city/:city/:id
- * Returns a specific blood bank depot by its city and bank code or composite ID.
- */
 export async function getBloodBankDetail(req, res, next) {
   try {
     const rawCity = req.params.city || '';
@@ -180,7 +160,6 @@ export async function getBloodBankDetail(req, res, next) {
     const idParam = (req.params.id || '').trim();
     const pool = getPool();
 
-    // The param could be '01', '02' or 'vadodara_01'
     let bankQuery = `
       SELECT * FROM blood_banks
       WHERE (LOWER(city) = LOWER(?) OR LOWER(city) = LOWER(?))
@@ -197,7 +176,6 @@ export async function getBloodBankDetail(req, res, next) {
 
     let bank = bankRows[0];
 
-    // Fallback: if not found by exact code, fetch first bank in that city
     if (!bank) {
       const [firstRows] = await pool.query(`
         SELECT * FROM blood_banks
@@ -214,7 +192,6 @@ export async function getBloodBankDetail(req, res, next) {
       });
     }
 
-    // 2. Fetch sibling banks in the same city for quick switching
     const [siblingRows] = await pool.query(`
       SELECT id, bank_code, name, category, contact_phone, emergency_phone, total_units
       FROM blood_banks
@@ -222,7 +199,6 @@ export async function getBloodBankDetail(req, res, next) {
       ORDER BY bank_code ASC;
     `, [bank.city]);
 
-    // 3. Fetch local registered donor backup count
     const [donorRows] = await pool.query(`
       SELECT COUNT(*) as donor_count,
              COUNT(CASE WHEN blood_group = 'O-' THEN 1 END) as o_neg_donors,
@@ -231,7 +207,6 @@ export async function getBloodBankDetail(req, res, next) {
       WHERE LOWER(city) = LOWER(?);
     `, [bank.city]);
 
-    // 4. Fetch local active requests or provide authentic emergency requisitions
     const [requestRows] = await pool.query(`
       SELECT id, patient_name, hospital, blood_group, units, urgency, status, created_at
       FROM requests
@@ -240,7 +215,6 @@ export async function getBloodBankDetail(req, res, next) {
       LIMIT 5;
     `, [bank.city, `%${bank.city}%`]);
 
-    // Format local requisitions with realistic fallback if database table has 0 city rows
     let requisitions = requestRows;
     if (!requisitions || requisitions.length === 0) {
       requisitions = [
@@ -274,7 +248,6 @@ export async function getBloodBankDetail(req, res, next) {
       ];
     }
 
-    // Format stock indicators
     const stockItems = [
       { group: 'O-', units: bank.stock_o_neg, pct: Math.min(100, Math.round((bank.stock_o_neg / 30) * 100)) },
       { group: 'O+', units: bank.stock_o_pos, pct: Math.min(100, Math.round((bank.stock_o_pos / 100) * 100)) },

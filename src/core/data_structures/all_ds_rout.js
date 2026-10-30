@@ -4,7 +4,6 @@ import { triageMLQ } from './MultilevelQueue.js';
 
 const router = Router();
 
-// --- 3D Array Routes ---
 router.post('/3d-array', async (req, res, next) => {
   try {
     const result = await donorManager.add_donors(req.body);
@@ -46,7 +45,6 @@ router.get('/3d-array/:city?/:bloodGroup?', (req, res) => {
   });
 });
 
-// GET /api/ds/queue - View current live state of all 3 urgency tiers
 router.get('/queue', (req, res) => {
   return res.json({
     success: true,
