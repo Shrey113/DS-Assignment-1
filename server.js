@@ -3,7 +3,7 @@ import { Server } from 'socket.io';
 import app from './src/app.js';
 import { config } from './src/config/env.js';
 import { createAllTables } from './src/config/tables.js';
-import { setupQueueSocket } from './src/core/data_structures/queue.socket.js';
+import { setup_queue_socket } from './src/core/data_structures/queue.socket.js';
 
 async function bootstrap() {
   try {
@@ -21,7 +21,7 @@ async function bootstrap() {
     });
 
     // Initialize 100% Real-time Socket.io Queue System
-    setupQueueSocket(io);
+    setup_queue_socket(io);
 
     server.listen(config.port, () => {
       console.log(`

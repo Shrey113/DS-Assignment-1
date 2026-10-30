@@ -21,7 +21,7 @@ const TRIAGE_TITLES = {
   'SCHEDULED': 'Tier 3: Scheduled / Elective (Within 24 Hours)'
 };
 
-async function findNearestBloodBank(request) {
+async function find_nearest_blood_bank(request) {
   const pool = getPool();
   const [cityBanks] = await pool.query('SELECT * FROM blood_banks WHERE LOWER(city) = LOWER(?)', [request.city]);
   const banks = cityBanks.length ? cityBanks : (await pool.query('SELECT * FROM blood_banks LIMIT 10'))[0];
@@ -53,7 +53,7 @@ async function findNearestBloodBank(request) {
   };
 }
 
-export function setupQueueSocket(io) {
+export function setup_queue_socket(io) {
   io.on('connection', (socket) => {
     console.log(`[Socket.io] Client connected: ${socket.id}`);
 
@@ -82,7 +82,7 @@ export function setupQueueSocket(io) {
       while (!triageMLQ.isEmpty()) {
         const { request, triage } = triageMLQ.dequeue();
 
-        const matchedDepot = await findNearestBloodBank(request);
+        const matchedDepot = await find_nearest_blood_bank(request);
         const topDonors = donorManager.get_best_3_option(request.city, request.bloodGroup);
 
         const pool = getPool();
