@@ -1,16 +1,14 @@
 import { Router } from 'express';
-import DonorManager from './3D_Array_Donor.js';
+import { donorManager } from './3D_Array_Donor.js';
 import { triageMLQ } from './MultilevelQueue.js';
 import { createRequest } from '../../controllers/request.controller.js';
 
 const router = Router();
-const manager = new DonorManager();
-await manager.init_donor_3D_array();
 
 // --- 3D Array Routes ---
 router.post('/3d-array', async (req, res, next) => {
   try {
-    const result = await manager.add_donors(req.body);
+    const result = await donorManager.add_donors(req.body);
     return res.status(201).json({
       success: true,
       message: 'Donor added to SQL and 3D Array updated successfully',
@@ -30,8 +28,8 @@ router.get('/3d-array/:city?/:bloodGroup?', (req, res) => {
       success: true,
       city,
       bloodGroup,
-      donors: manager.get_donors(city, bloodGroup),
-      best_3_options: manager.get_best_3_option(city, bloodGroup)
+      donors: donorManager.get_donors(city, bloodGroup),
+      best_3_options: donorManager.get_best_3_option(city, bloodGroup)
     });
   }
 
@@ -39,13 +37,13 @@ router.get('/3d-array/:city?/:bloodGroup?', (req, res) => {
     return res.json({
       success: true,
       city,
-      data: manager.donors[city] || {}
+      data: donorManager.donors[city] || {}
     });
   }
 
   return res.json({
     success: true,
-    data: manager.donors
+    data: donorManager.donors
   });
 });
 

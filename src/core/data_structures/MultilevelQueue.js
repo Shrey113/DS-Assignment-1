@@ -22,16 +22,16 @@ class MultilevelQueue {
     }
 
     dequeue() {
-        if (!this.critical.isEmpty()) {
-            return { request: this.critical.dequeue(), triage: { tier: 1, tierId: 'CRITICAL' } };
-        }
-        if (!this.urgent.isEmpty()) {
-            return { request: this.urgent.dequeue(), triage: { tier: 2, tierId: 'URGENT' } };
-        }
-        if (!this.scheduled.isEmpty()) {
-            return { request: this.scheduled.dequeue(), triage: { tier: 3, tierId: 'SCHEDULED' } };
-        }
+        if (!this.critical.isEmpty()) return { request: this.critical.dequeue(), triage: { tier: 1, tierId: 'CRITICAL' } };
+        if (!this.urgent.isEmpty())   return { request: this.urgent.dequeue(),   triage: { tier: 2, tierId: 'URGENT' } };
+        if (!this.scheduled.isEmpty())return { request: this.scheduled.dequeue(),triage: { tier: 3, tierId: 'SCHEDULED' } };
         return null;
+    }
+
+    // Adds to queue and auto-triggers dequeue for immediate triage processing
+    add_queue(req) {
+        this.enqueue(req);
+        return this.dequeue();
     }
 }
 

@@ -113,4 +113,8 @@ class DonorManager {
 
 }
 
+export const donorManager = new DonorManager();
+await donorManager.init_donor_3D_array();
+
+export { DonorManager };
 export default DonorManager;
