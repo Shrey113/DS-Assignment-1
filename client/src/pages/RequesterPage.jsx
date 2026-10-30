@@ -110,7 +110,7 @@ export default function RequesterPage() {
   // Live 3D Array query whenever city and bloodGroup are selected
   useEffect(() => {
     if (city && bloodGroup) {
-      fetch(`http://localhost:5100/api/ds/3d-array/${encodeURIComponent(city)}/${encodeURIComponent(bloodGroup)}`)
+      fetch(`http://localhost:5100/api/ds/get-donors/${encodeURIComponent(city)}/${encodeURIComponent(bloodGroup)}`)
         .then((r) => r.json())
         .then((res) => {
           if (res.success && res.donors) {
@@ -504,39 +504,6 @@ export default function RequesterPage() {
                   <p className="donor-card-sub">
                     Broadcast an emergency requisition via real-time Multilevel Priority Queue.
                   </p>
-
-                  {isSubmitting && activeToken && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      background: '#F0FDF4',
-                      border: '1.5px dashed #22C55E',
-                      borderRadius: '10px',
-                      padding: '10px 14px',
-                      marginTop: '12px'
-                    }}>
-                      <div>
-                        <div style={{ fontSize: '0.7rem', color: '#15803D', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          🎟️ Queue Token Assigned
-                        </div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#14532D', fontFamily: 'monospace' }}>
-                          {activeToken.tokenId}
-                        </div>
-                        <div style={{ fontSize: '0.74rem', color: '#166534', marginTop: '2px' }}>
-                          Priority: <strong>{activeToken.urgency}</strong> • Awaiting priority dispatch...
-                        </div>
-                      </div>
-                      <div style={{
-                        width: '18px',
-                        height: '18px',
-                        border: '2.5px solid #BBF7D0',
-                        borderTopColor: '#16A34A',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }}></div>
-                    </div>
-                  )}
                 </div>
 
                 <form onSubmit={handleSubmit} className="donor-fields-stack">
@@ -765,8 +732,9 @@ export default function RequesterPage() {
 
                   {/* Submit Button */}
                   <button type="submit" disabled={isSubmitting} className="donor-submit-btn">
+                    {isSubmitting && <span className="btn-spinner" />}
                     <span>
-                      {isSubmitting ? 'Broadcasting Emergency Requisition...' : `Broadcast Emergency Request${units && bloodGroup ? ` (${units} ${units === 1 ? 'Unit' : 'Units'} of ${bloodGroup})` : units ? ` (${units} ${units === 1 ? 'Unit' : 'Units'})` : bloodGroup ? ` (${bloodGroup})` : ''}`}
+                      {`Broadcast Emergency Request${units && bloodGroup ? ` (${units} ${units === 1 ? 'Unit' : 'Units'} of ${bloodGroup})` : units ? ` (${units} ${units === 1 ? 'Unit' : 'Units'})` : bloodGroup ? ` (${bloodGroup})` : ''}`}
                     </span>
                     <span className="btn-arrow-icon">→</span>
                   </button>

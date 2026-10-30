@@ -3,85 +3,54 @@ import { GUJARAT_DISTRICTS_34, resolveDistrict } from '../constants/districts.js
 
 export async function getAllCitiesBloodBanks(req, res, next) {
   try {
-    const pool = getPool();
-
-    const [rows] = await pool.query(`
+    const [rows] = await getPool().query(`
       SELECT 
-        id, bank_code, name, city, category, address, contact_phone, emergency_phone, operating_hours,
-        latitude, longitude,
-        stock_o_pos, stock_o_neg, stock_a_pos, stock_a_neg, stock_b_pos, stock_b_neg, stock_ab_pos, stock_ab_neg,
-        total_units, is_verified, last_updated
+        city,
+        CAST(COUNT(*) AS SIGNED) AS bank_count,
+        CAST(COALESCE(SUM(total_units), 0) AS SIGNED) AS total_units,
+        JSON_OBJECT(
+          'o_pos', CAST(COALESCE(SUM(stock_o_pos), 0) AS SIGNED),
+          'o_neg', CAST(COALESCE(SUM(stock_o_neg), 0) AS SIGNED),
+          'a_pos', CAST(COALESCE(SUM(stock_a_pos), 0) AS SIGNED),
+          'a_neg', CAST(COALESCE(SUM(stock_a_neg), 0) AS SIGNED),
+          'b_pos', CAST(COALESCE(SUM(stock_b_pos), 0) AS SIGNED),
+          'b_neg', CAST(COALESCE(SUM(stock_b_neg), 0) AS SIGNED),
+          'ab_pos', CAST(COALESCE(SUM(stock_ab_pos), 0) AS SIGNED),
+          'ab_neg', CAST(COALESCE(SUM(stock_ab_neg), 0) AS SIGNED)
+        ) AS stocks,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id', id,
+            'code', bank_code,
+            'name', name,
+            'category', category,
+            'contact_phone', contact_phone,
+            'emergency_phone', emergency_phone,
+            'total_units', total_units
+          )
+        ) AS banks
       FROM blood_banks
-      ORDER BY city ASC, bank_code ASC;
+      GROUP BY city
+      ORDER BY city ASC;
     `);
 
-    const cityMap = {};
-    for (const dist of GUJARAT_DISTRICTS_34) {
-      cityMap[dist] = {
-        city: dist,
+    const dbMap = Object.fromEntries(rows.map(r => [r.city, r]));
+    const cityList = GUJARAT_DISTRICTS_34.map(city => {
+      const r = dbMap[city] || {
+        city,
         bank_count: 0,
         total_units: 0,
-        stocks: {
-          o_pos: 0, o_neg: 0, a_pos: 0, a_neg: 0,
-          b_pos: 0, b_neg: 0, ab_pos: 0, ab_neg: 0
-        },
+        stocks: { o_pos: 0, o_neg: 0, a_pos: 0, a_neg: 0, b_pos: 0, b_neg: 0, ab_pos: 0, ab_neg: 0 },
         banks: []
       };
-    }
-
-    let overallUnits = 0;
-    let overallBanks = 0;
-
-    for (const row of rows) {
-      const city = row.city;
-      if (!cityMap[city]) {
-        cityMap[city] = {
-          city,
-          bank_count: 0,
-          total_units: 0,
-          stocks: {
-            o_pos: 0, o_neg: 0, a_pos: 0, a_neg: 0,
-            b_pos: 0, b_neg: 0, ab_pos: 0, ab_neg: 0
-          },
-          banks: []
-        };
-      }
-
-      cityMap[city].bank_count += 1;
-      cityMap[city].total_units += row.total_units;
-      cityMap[city].stocks.o_pos += row.stock_o_pos;
-      cityMap[city].stocks.o_neg += row.stock_o_neg;
-      cityMap[city].stocks.a_pos += row.stock_a_pos;
-      cityMap[city].stocks.a_neg += row.stock_a_neg;
-      cityMap[city].stocks.b_pos += row.stock_b_pos;
-      cityMap[city].stocks.b_neg += row.stock_b_neg;
-      cityMap[city].stocks.ab_pos += row.stock_ab_pos;
-      cityMap[city].stocks.ab_neg += row.stock_ab_neg;
-
-      cityMap[city].banks.push({
-        id: row.id,
-        code: row.bank_code,
-        name: row.name,
-        category: row.category,
-        contact_phone: row.contact_phone,
-        emergency_phone: row.emergency_phone,
-        total_units: row.total_units
-      });
-
-      overallUnits += row.total_units;
-      overallBanks += 1;
-    }
-
-    const cityList = Object.values(cityMap).map(c => {
-      const criticalGroups = [];
-      if (c.stocks.o_neg < 15) criticalGroups.push('O-');
-      if (c.stocks.ab_neg < 15) criticalGroups.push('AB-');
-      if (c.stocks.b_neg < 15) criticalGroups.push('B-');
-      if (c.stocks.a_neg < 15) criticalGroups.push('A-');
-
       return {
-        ...c,
-        critical_shortages: criticalGroups
+        ...r,
+        critical_shortages: [
+          r.stocks.o_neg < 15 && 'O-',
+          r.stocks.ab_neg < 15 && 'AB-',
+          r.stocks.b_neg < 15 && 'B-',
+          r.stocks.a_neg < 15 && 'A-'
+        ].filter(Boolean)
       };
     });
 
@@ -89,14 +58,13 @@ export async function getAllCitiesBloodBanks(req, res, next) {
       success: true,
       meta: {
         total_districts: cityList.length,
-        total_blood_banks: overallBanks,
-        total_units_in_cold_storage: overallUnits,
+        total_blood_banks: cityList.reduce((s, c) => s + c.bank_count, 0),
+        total_units_in_cold_storage: cityList.reduce((s, c) => s + c.total_units, 0),
         coverage: '100% Gujarat Coverage (34 Districts)'
       },
       cities: cityList
     });
   } catch (error) {
-    console.error('[BloodBank Controller Error: getAllCitiesBloodBanks]', error.message);
     next(error);
   }
 }
@@ -104,51 +72,52 @@ export async function getAllCitiesBloodBanks(req, res, next) {
 export async function getBloodBanksByCity(req, res, next) {
   try {
     const rawCity = req.params.city || '';
-    const resolvedCity = resolveDistrict(rawCity);
-    const pool = getPool();
+    const city = resolveDistrict(rawCity);
 
-    const [banks] = await pool.query(`
+    const [[result]] = await getPool().query(`
       SELECT 
-        id, bank_code, name, city, category, address, contact_phone, emergency_phone, operating_hours,
-        latitude, longitude,
-        stock_o_pos, stock_o_neg, stock_a_pos, stock_a_neg, stock_b_pos, stock_b_neg, stock_ab_pos, stock_ab_neg,
-        total_units, is_verified, last_updated
+        CAST(COUNT(id) AS SIGNED) AS bank_count,
+        CAST(COALESCE(SUM(total_units), 0) AS SIGNED) AS total_units,
+        JSON_OBJECT(
+          'o_pos', CAST(COALESCE(SUM(stock_o_pos), 0) AS SIGNED),
+          'o_neg', CAST(COALESCE(SUM(stock_o_neg), 0) AS SIGNED),
+          'a_pos', CAST(COALESCE(SUM(stock_a_pos), 0) AS SIGNED),
+          'a_neg', CAST(COALESCE(SUM(stock_a_neg), 0) AS SIGNED),
+          'b_pos', CAST(COALESCE(SUM(stock_b_pos), 0) AS SIGNED),
+          'b_neg', CAST(COALESCE(SUM(stock_b_neg), 0) AS SIGNED),
+          'ab_pos', CAST(COALESCE(SUM(stock_ab_pos), 0) AS SIGNED),
+          'ab_neg', CAST(COALESCE(SUM(stock_ab_neg), 0) AS SIGNED)
+        ) AS stocks,
+        (SELECT COUNT(*) FROM donors WHERE LOWER(city) IN (LOWER(?), LOWER(?))) AS backup_donors_count,
+        COALESCE(JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id', id, 'bank_code', bank_code, 'name', name, 'city', city,
+            'category', category, 'address', address, 'contact_phone', contact_phone,
+            'emergency_phone', emergency_phone, 'operating_hours', operating_hours,
+            'latitude', latitude, 'longitude', longitude,
+            'stock_o_pos', stock_o_pos, 'stock_o_neg', stock_o_neg,
+            'stock_a_pos', stock_a_pos, 'stock_a_neg', stock_a_neg,
+            'stock_b_pos', stock_b_pos, 'stock_b_neg', stock_b_neg,
+            'stock_ab_pos', stock_ab_pos, 'stock_ab_neg', stock_ab_neg,
+            'total_units', total_units, 'is_verified', is_verified, 'last_updated', last_updated
+          )
+        ), JSON_ARRAY()) AS banks
       FROM blood_banks
-      WHERE LOWER(city) = LOWER(?) OR LOWER(city) = LOWER(?)
-      ORDER BY bank_code ASC;
-    `, [resolvedCity, rawCity]);
-
-    const [donorCountRows] = await pool.query(`
-      SELECT COUNT(*) as donor_count 
-      FROM donors 
-      WHERE LOWER(city) = LOWER(?) OR LOWER(city) = LOWER(?);
-    `, [resolvedCity, rawCity]);
-    const donorCount = donorCountRows[0]?.donor_count || 0;
-
-    const cityTotals = {
-      bank_count: banks.length,
-      total_units: banks.reduce((sum, b) => sum + (b.total_units || 0), 0),
-      stocks: {
-        o_pos: banks.reduce((s, b) => s + b.stock_o_pos, 0),
-        o_neg: banks.reduce((s, b) => s + b.stock_o_neg, 0),
-        a_pos: banks.reduce((s, b) => s + b.stock_a_pos, 0),
-        a_neg: banks.reduce((s, b) => s + b.stock_a_neg, 0),
-        b_pos: banks.reduce((s, b) => s + b.stock_b_pos, 0),
-        b_neg: banks.reduce((s, b) => s + b.stock_b_neg, 0),
-        ab_pos: banks.reduce((s, b) => s + b.stock_ab_pos, 0),
-        ab_neg: banks.reduce((s, b) => s + b.stock_ab_neg, 0)
-      }
-    };
+      WHERE LOWER(city) IN (LOWER(?), LOWER(?));
+    `, [city, rawCity, city, rawCity]);
 
     return res.status(200).json({
       success: true,
-      city: resolvedCity,
-      aggregates: cityTotals,
-      backup_donors_count: donorCount,
-      banks
+      city,
+      aggregates: {
+        bank_count: result.bank_count,
+        total_units: result.total_units,
+        stocks: result.stocks
+      },
+      backup_donors_count: result.backup_donors_count || 0,
+      banks: result.bank_count > 0 ? result.banks : []
     });
   } catch (error) {
-    console.error('[BloodBank Controller Error: getBloodBanksByCity]', error.message);
     next(error);
   }
 }
@@ -160,233 +129,152 @@ export async function getBloodBankDetail(req, res, next) {
     const idParam = (req.params.id || '').trim();
     const pool = getPool();
 
-    let bankQuery = `
-      SELECT * FROM blood_banks
-      WHERE (LOWER(city) = LOWER(?) OR LOWER(city) = LOWER(?))
+    const [[bank]] = await pool.query(`
+      SELECT *,
+        JSON_ARRAY(
+          JSON_OBJECT('group', 'O-', 'units', stock_o_neg, 'pct', LEAST(100, ROUND((stock_o_neg / 30) * 100))),
+          JSON_OBJECT('group', 'O+', 'units', stock_o_pos, 'pct', LEAST(100, ROUND((stock_o_pos / 100) * 100))),
+          JSON_OBJECT('group', 'A-', 'units', stock_a_neg, 'pct', LEAST(100, ROUND((stock_a_neg / 30) * 100))),
+          JSON_OBJECT('group', 'A+', 'units', stock_a_pos, 'pct', LEAST(100, ROUND((stock_a_pos / 80) * 100))),
+          JSON_OBJECT('group', 'B-', 'units', stock_b_neg, 'pct', LEAST(100, ROUND((stock_b_neg / 30) * 100))),
+          JSON_OBJECT('group', 'B+', 'units', stock_b_pos, 'pct', LEAST(100, ROUND((stock_b_pos / 80) * 100))),
+          JSON_OBJECT('group', 'AB-', 'units', stock_ab_neg, 'pct', LEAST(100, ROUND((stock_ab_neg / 20) * 100))),
+          JSON_OBJECT('group', 'AB+', 'units', stock_ab_pos, 'pct', LEAST(100, ROUND((stock_ab_pos / 50) * 100)))
+        ) AS stock_breakdown
+      FROM blood_banks
+      WHERE (LOWER(city) IN (LOWER(?), LOWER(?)))
         AND (bank_code = ? OR id = ? OR LOWER(id) LIKE LOWER(?))
+      ORDER BY (bank_code = ?) DESC
       LIMIT 1;
-    `;
-    const [bankRows] = await pool.query(bankQuery, [
-      resolvedCity,
-      rawCity,
-      idParam,
-      idParam,
-      `%${idParam}%`
-    ]);
+    `, [resolvedCity, rawCity, idParam, idParam, `%${idParam}%`, idParam]);
 
-    let bank = bankRows[0];
-
-    if (!bank) {
-      const [firstRows] = await pool.query(`
-        SELECT * FROM blood_banks
-        WHERE LOWER(city) = LOWER(?) OR LOWER(city) = LOWER(?)
+    let targetBank = bank;
+    if (!targetBank) {
+      const [[fallback]] = await pool.query(`
+        SELECT *,
+          JSON_ARRAY(
+            JSON_OBJECT('group', 'O-', 'units', stock_o_neg, 'pct', LEAST(100, ROUND((stock_o_neg / 30) * 100))),
+            JSON_OBJECT('group', 'O+', 'units', stock_o_pos, 'pct', LEAST(100, ROUND((stock_o_pos / 100) * 100))),
+            JSON_OBJECT('group', 'A-', 'units', stock_a_neg, 'pct', LEAST(100, ROUND((stock_a_neg / 30) * 100))),
+            JSON_OBJECT('group', 'A+', 'units', stock_a_pos, 'pct', LEAST(100, ROUND((stock_a_pos / 80) * 100))),
+            JSON_OBJECT('group', 'B-', 'units', stock_b_neg, 'pct', LEAST(100, ROUND((stock_b_neg / 30) * 100))),
+            JSON_OBJECT('group', 'B+', 'units', stock_b_pos, 'pct', LEAST(100, ROUND((stock_b_pos / 80) * 100))),
+            JSON_OBJECT('group', 'AB-', 'units', stock_ab_neg, 'pct', LEAST(100, ROUND((stock_ab_neg / 20) * 100))),
+            JSON_OBJECT('group', 'AB+', 'units', stock_ab_pos, 'pct', LEAST(100, ROUND((stock_ab_pos / 50) * 100)))
+          ) AS stock_breakdown
+        FROM blood_banks
+        WHERE LOWER(city) IN (LOWER(?), LOWER(?))
         ORDER BY bank_code ASC LIMIT 1;
       `, [resolvedCity, rawCity]);
-      bank = firstRows[0];
+      targetBank = fallback;
     }
 
-    if (!bank) {
+    if (!targetBank) {
       return res.status(404).json({
         success: false,
         message: `No blood bank found for city '${resolvedCity}' and ID '${idParam}'.`
       });
     }
 
-    const [siblingRows] = await pool.query(`
-      SELECT id, bank_code, name, category, contact_phone, emergency_phone, total_units
-      FROM blood_banks
-      WHERE LOWER(city) = LOWER(?)
-      ORDER BY bank_code ASC;
-    `, [bank.city]);
+    const [[sibling_banks], [[backup_donors]], [requestRows]] = await Promise.all([
+      pool.query(`
+        SELECT id, bank_code, name, category, contact_phone, emergency_phone, total_units
+        FROM blood_banks
+        WHERE LOWER(city) = LOWER(?)
+        ORDER BY bank_code ASC;
+      `, [targetBank.city]),
+      pool.query(`
+        SELECT 
+          CAST(COUNT(*) AS SIGNED) AS donor_count,
+          CAST(COALESCE(SUM(CASE WHEN blood_group = 'O-' THEN 1 ELSE 0 END), 0) AS SIGNED) AS o_neg_donors,
+          CAST(COALESCE(SUM(CASE WHEN blood_group = 'O+' THEN 1 ELSE 0 END), 0) AS SIGNED) AS o_pos_donors
+        FROM donors 
+        WHERE LOWER(city) = LOWER(?);
+      `, [targetBank.city]),
+      pool.query(`
+        SELECT id, patient_name, hospital, blood_group, units, urgency, status, created_at
+        FROM requests
+        WHERE LOWER(city) = LOWER(?) OR LOWER(hospital) LIKE LOWER(?)
+        ORDER BY created_at DESC
+        LIMIT 5;
+      `, [targetBank.city, `%${targetBank.city}%`])
+    ]);
 
-    const [donorRows] = await pool.query(`
-      SELECT COUNT(*) as donor_count,
-             COUNT(CASE WHEN blood_group = 'O-' THEN 1 END) as o_neg_donors,
-             COUNT(CASE WHEN blood_group = 'O+' THEN 1 END) as o_pos_donors
-      FROM donors 
-      WHERE LOWER(city) = LOWER(?);
-    `, [bank.city]);
-
-    const [requestRows] = await pool.query(`
-      SELECT id, patient_name, hospital, blood_group, units, urgency, status, created_at
-      FROM requests
-      WHERE LOWER(city) = LOWER(?) OR LOWER(hospital) LIKE LOWER(?)
-      ORDER BY created_at DESC
-      LIMIT 5;
-    `, [bank.city, `%${bank.city}%`]);
-
-    let requisitions = requestRows;
-    if (!requisitions || requisitions.length === 0) {
-      requisitions = [
-        {
-          id: `REQ-${bank.bank_code}01`,
-          patient_name: 'Rahul V. Sharma',
-          hospital: `${bank.city} Civil Trauma ICU`,
-          blood_group: 'O-',
-          units: 2,
-          urgency: 'CRITICAL',
-          status: 'Pending'
-        },
-        {
-          id: `REQ-${bank.bank_code}02`,
-          patient_name: 'Priyanka D. Patel',
-          hospital: `${bank.city} General Surgical Unit`,
-          blood_group: 'B+',
-          units: 1,
-          urgency: 'URGENT',
-          status: 'Dispatched'
-        },
-        {
-          id: `REQ-${bank.bank_code}03`,
-          patient_name: 'Amit K. Shah',
-          hospital: 'Apollo Heart Institute',
-          blood_group: 'A+',
-          units: 3,
-          urgency: 'SCHEDULED',
-          status: 'Pending'
-        }
-      ];
-    }
-
-    const stockItems = [
-      { group: 'O-', units: bank.stock_o_neg, pct: Math.min(100, Math.round((bank.stock_o_neg / 30) * 100)) },
-      { group: 'O+', units: bank.stock_o_pos, pct: Math.min(100, Math.round((bank.stock_o_pos / 100) * 100)) },
-      { group: 'A-', units: bank.stock_a_neg, pct: Math.min(100, Math.round((bank.stock_a_neg / 30) * 100)) },
-      { group: 'A+', units: bank.stock_a_pos, pct: Math.min(100, Math.round((bank.stock_a_pos / 80) * 100)) },
-      { group: 'B-', units: bank.stock_b_neg, pct: Math.min(100, Math.round((bank.stock_b_neg / 30) * 100)) },
-      { group: 'B+', units: bank.stock_b_pos, pct: Math.min(100, Math.round((bank.stock_b_pos / 80) * 100)) },
-      { group: 'AB-', units: bank.stock_ab_neg, pct: Math.min(100, Math.round((bank.stock_ab_neg / 20) * 100)) },
-      { group: 'AB+', units: bank.stock_ab_pos, pct: Math.min(100, Math.round((bank.stock_ab_pos / 50) * 100)) }
+    const requisitions = requestRows && requestRows.length > 0 ? requestRows : [
+      { id: `REQ-${targetBank.bank_code}01`, patient_name: 'Rahul V. Sharma', hospital: `${targetBank.city} Civil Trauma ICU`, blood_group: 'O-', units: 2, urgency: 'CRITICAL', status: 'Pending' },
+      { id: `REQ-${targetBank.bank_code}02`, patient_name: 'Priyanka D. Patel', hospital: `${targetBank.city} General Surgical Unit`, blood_group: 'B+', units: 1, urgency: 'URGENT', status: 'Dispatched' },
+      { id: `REQ-${targetBank.bank_code}03`, patient_name: 'Amit K. Shah', hospital: 'Apollo Heart Institute', blood_group: 'A+', units: 3, urgency: 'SCHEDULED', status: 'Pending' }
     ];
 
     return res.status(200).json({
       success: true,
-      bank: {
-        ...bank,
-        stock_breakdown: stockItems
-      },
-      sibling_banks: siblingRows,
-      backup_donors: donorRows[0] || { donor_count: 0, o_neg_donors: 0, o_pos_donors: 0 },
+      bank: targetBank,
+      sibling_banks,
+      backup_donors: backup_donors || { donor_count: 0, o_neg_donors: 0, o_pos_donors: 0 },
       requisitions
     });
   } catch (error) {
-    console.error('[BloodBank Controller Error: getBloodBankDetail]', error.message);
     next(error);
   }
 }
 
 export async function getDistrictStats(req, res, next) {
   try {
-    const pool = getPool();
+    const currentHour = new Date().getHours();
+    const currentSlot = currentHour >= 8 && currentHour < 12 ? 'morning'
+      : currentHour >= 12 && currentHour < 16 ? 'afternoon'
+      : currentHour >= 16 && currentHour < 20 ? 'evening' : 'off_hours';
 
-    const [rows] = await pool.query(`
+    const [rows] = await getPool().query(`
       SELECT 
         city,
-        blood_group,
-        last_donated_date,
-        is_first_time,
-        preferred_slot,
-        phone
+        CAST(COUNT(*) AS SIGNED) AS totalDonors,
+        CAST(COALESCE(SUM(CASE WHEN (is_first_time = 1 OR last_donated_date IS NULL OR DATEDIFF(CURDATE(), last_donated_date) >= 90) THEN 1 ELSE 0 END), 0) AS SIGNED) AS medicallyEligible,
+        CAST(COALESCE(SUM(CASE WHEN (is_first_time = 0 AND last_donated_date IS NOT NULL AND DATEDIFF(CURDATE(), last_donated_date) < 90) THEN 1 ELSE 0 END), 0) AS SIGNED) AS coolingDownDonors,
+        CAST(COALESCE(SUM(CASE 
+          WHEN (is_first_time = 1 OR last_donated_date IS NULL OR DATEDIFF(CURDATE(), last_donated_date) >= 90)
+           AND (preferred_slot IS NULL OR LOWER(preferred_slot) = 'flexible' OR LOWER(preferred_slot) = ?) 
+          THEN 1 ELSE 0 END), 0) AS SIGNED) AS availableDonors,
+        CAST(COALESCE(SUM(CASE WHEN phone IS NOT NULL AND phone != '' THEN 1 ELSE 0 END), 0) AS SIGNED) AS verifiedDonors,
+        CAST(COALESCE(SUM(CASE WHEN is_first_time = 1 THEN 1 ELSE 0 END), 0) AS SIGNED) AS firstTimeDonors,
+        JSON_OBJECT(
+          'O+', CAST(COALESCE(SUM(CASE WHEN blood_group = 'O+' THEN 1 ELSE 0 END), 0) AS SIGNED),
+          'O-', CAST(COALESCE(SUM(CASE WHEN blood_group = 'O-' THEN 1 ELSE 0 END), 0) AS SIGNED),
+          'A+', CAST(COALESCE(SUM(CASE WHEN blood_group = 'A+' THEN 1 ELSE 0 END), 0) AS SIGNED),
+          'A-', CAST(COALESCE(SUM(CASE WHEN blood_group = 'A-' THEN 1 ELSE 0 END), 0) AS SIGNED),
+          'B+', CAST(COALESCE(SUM(CASE WHEN blood_group = 'B+' THEN 1 ELSE 0 END), 0) AS SIGNED),
+          'B-', CAST(COALESCE(SUM(CASE WHEN blood_group = 'B-' THEN 1 ELSE 0 END), 0) AS SIGNED),
+          'AB+', CAST(COALESCE(SUM(CASE WHEN blood_group = 'AB+' THEN 1 ELSE 0 END), 0) AS SIGNED),
+          'AB-', CAST(COALESCE(SUM(CASE WHEN blood_group = 'AB-' THEN 1 ELSE 0 END), 0) AS SIGNED)
+        ) AS bloodGroups
       FROM donors
-    `);
+      GROUP BY city;
+    `, [currentSlot]);
 
-    const now = new Date();
-    const currentHour = now.getHours();
-
-    let currentSlot = 'off_hours';
-    if (currentHour >= 8 && currentHour < 12) {
-      currentSlot = 'morning';
-    } else if (currentHour >= 12 && currentHour < 16) {
-      currentSlot = 'afternoon';
-    } else if (currentHour >= 16 && currentHour < 20) {
-      currentSlot = 'evening';
-    }
-
-    const districtStats = {};
-    for (const d of GUJARAT_DISTRICTS_34) {
-      districtStats[d] = {
-        district: d,
-        totalDonors: 0,
-        availableDonors: 0,
-        medicallyEligible: 0,
-        coolingDownDonors: 0,
-        verifiedDonors: 0,
-        firstTimeDonors: 0,
-        bloodGroups: {
-          'O+': 0, 'O-': 0,
-          'A+': 0, 'A-': 0,
-          'B+': 0, 'B-': 0,
-          'AB+': 0, 'AB-': 0
-        }
-      };
-    }
+    const districtStats = Object.fromEntries(GUJARAT_DISTRICTS_34.map(d => [d, {
+      district: d, totalDonors: 0, availableDonors: 0, medicallyEligible: 0, coolingDownDonors: 0, verifiedDonors: 0, firstTimeDonors: 0,
+      bloodGroups: { 'O+': 0, 'O-': 0, 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'AB+': 0, 'AB-': 0 }
+    }]));
 
     let overallTotal = 0;
     let overallAvailable = 0;
     let overallCoolingDown = 0;
 
-    for (const row of rows) {
-      const district = resolveDistrict(row.city);
-      if (!districtStats[district]) {
-        districtStats[district] = {
-          district,
-          totalDonors: 0,
-          availableDonors: 0,
-          medicallyEligible: 0,
-          coolingDownDonors: 0,
-          verifiedDonors: 0,
-          firstTimeDonors: 0,
-          bloodGroups: {
-            'O+': 0, 'O-': 0,
-            'A+': 0, 'A-': 0,
-            'B+': 0, 'B-': 0,
-            'AB+': 0, 'AB-': 0
-          }
-        };
+    for (const r of rows) {
+      const d = districtStats[resolveDistrict(r.city)];
+      if (!d) continue;
+      d.totalDonors += r.totalDonors;
+      d.availableDonors += r.availableDonors;
+      d.medicallyEligible += r.medicallyEligible;
+      d.coolingDownDonors += r.coolingDownDonors;
+      d.verifiedDonors += r.verifiedDonors;
+      d.firstTimeDonors += r.firstTimeDonors;
+      for (const [bg, count] of Object.entries(r.bloodGroups)) {
+        d.bloodGroups[bg] += count;
       }
-
-      const d = districtStats[district];
-      d.totalDonors += 1;
-      overallTotal += 1;
-
-      let isMedicallyEligible = false;
-      if (row.is_first_time === 1 || !row.last_donated_date) {
-        isMedicallyEligible = true;
-      } else {
-        const lastDonated = new Date(row.last_donated_date);
-        const daysSinceLast = Math.floor((now - lastDonated) / (1000 * 60 * 60 * 24));
-        if (daysSinceLast >= 90) {
-          isMedicallyEligible = true;
-        } else {
-          d.coolingDownDonors += 1;
-          overallCoolingDown += 1;
-        }
-      }
-
-      if (isMedicallyEligible) {
-        d.medicallyEligible += 1;
-      }
-
-      const slot = (row.preferred_slot || 'flexible').toLowerCase();
-      const isSlotActive = (slot === 'flexible') || (slot === currentSlot);
-
-      const isAvailableNow = isMedicallyEligible && isSlotActive;
-      if (isAvailableNow) {
-        d.availableDonors += 1;
-        overallAvailable += 1;
-      }
-
-      if (row.phone) {
-        d.verifiedDonors += 1;
-      }
-
-      if (row.is_first_time === 1 || row.is_first_time === true) {
-        d.firstTimeDonors += 1;
-      }
-
-      if (row.blood_group && d.bloodGroups[row.blood_group] !== undefined) {
-        d.bloodGroups[row.blood_group] += 1;
-      }
+      overallTotal += r.totalDonors;
+      overallAvailable += r.availableDonors;
+      overallCoolingDown += r.coolingDownDonors;
     }
 
     return res.json({
@@ -400,7 +288,6 @@ export async function getDistrictStats(req, res, next) {
       districts: districtStats
     });
   } catch (error) {
-    console.error('[Server Log: getDistrictStats Error]', error.message);
     next(error);
   }
 }

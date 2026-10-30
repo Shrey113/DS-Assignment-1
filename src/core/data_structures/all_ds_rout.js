@@ -3,7 +3,7 @@ import { donorManager } from './3D_Array_Donor.js';
 
 const router = Router();
 
-router.post('/3d-array', async (req, res, next) => {
+router.post('/add-donors', async (req, res, next) => {
   try {
     const result = await donorManager.add_donors(req.body);
     return res.status(201).json({
@@ -17,7 +17,7 @@ router.post('/3d-array', async (req, res, next) => {
   }
 });
 
-router.get('/3d-array/:city?/:bloodGroup?', (req, res) => {
+router.get('/get-donors/:city?/:bloodGroup?', (req, res) => {
   const { city, bloodGroup } = req.params;
 
   if (city && bloodGroup) {

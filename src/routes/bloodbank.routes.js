@@ -9,11 +9,8 @@ import {
 const router = Router();
 
 router.get('/', getAllCitiesBloodBanks);
-
+router.get('/districts', getDistrictStats);
 router.get('/city/:city', getBloodBanksByCity);
 router.get('/city/:city/:id', getBloodBankDetail);
-
-// For map 
-// router.get('/districts', getDistrictStats);
 
 export default router;

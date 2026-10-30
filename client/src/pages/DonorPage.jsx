@@ -120,7 +120,7 @@ export default function DonorPage() {
     }
 
     // Send donor data to MySQL backend via 3D Array DS API
-    fetch('http://localhost:5100/api/ds/3d-array', {
+    fetch('http://localhost:5100/api/ds/add-donors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
