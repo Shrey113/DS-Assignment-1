@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import PortalHeader from '../components/PortalHeader';
 import { AlertCircle, MapPin, CheckCircle2, Sparkles, Hospital, PhoneCall, Phone, Droplet, Plus } from 'lucide-react';
@@ -68,31 +68,40 @@ export default function RequesterPage() {
   const [dispatchResult, setDispatchResult] = useState(null);
   const [liveDonorsCount, setLiveDonorsCount] = useState(null);
   const [socket, setSocket] = useState(null);
-  const [queueState, setQueueState] = useState({ critical: [], urgent: [], scheduled: [] });
+  const [activeToken, setActiveToken] = useState(null);
+  const activeTokenRef = useRef(null);
 
-  // 100% Real-time Socket.io Connection
+  // 100% Real-time Socket.io Connection & Token Listener
   useEffect(() => {
     const s = io('http://localhost:5100');
     setSocket(s);
 
     s.on('connect', () => {
-      console.log('[Socket.io Client] Connected to MLQ WebSocket:', s.id);
+      console.log('[Socket.io] Connected to BloodLink Queue Server:', s.id);
     });
 
-    s.on('queue_state', (state) => {
-      setQueueState(state || { critical: [], urgent: [], scheduled: [] });
+    // Step 2: Receive unique queue token immediately after send_request
+    s.on('send_queue_token_id', (tokenData) => {
+      console.log('[Socket.io] Queue Token Assigned:', tokenData.tokenId);
+      activeTokenRef.current = tokenData.tokenId;
+      setActiveToken(tokenData);
     });
 
-    s.on('request_matched', (data) => {
-      console.log('[Socket.io Client] Requisition matched & dispatched:', data);
-      setDispatchResult(data);
-      setSubmittedCoords({
-        lat: Number(latitude) || 23.0225,
-        lng: Number(longitude) || 72.5714,
-        id: data.requestId
-      });
-      setIsSubmitting(false);
-      setIsSubmitted(true);
+    // Step 3: Receive dispatched result with strict Token Verification
+    s.on('send_result', (data) => {
+      console.log('[Socket.io] Requisition dispatched for Token:', data.tokenId);
+
+      // Verify that the incoming result matches OUR assigned token
+      if (data.tokenId === activeTokenRef.current) {
+        setDispatchResult(data);
+        setSubmittedCoords({
+          lat: Number(latitude) || 23.0225,
+          lng: Number(longitude) || 72.5714,
+          id: data.requestId
+        });
+        setIsSubmitting(false);
+        setIsSubmitted(true);
+      }
     });
 
     return () => s.disconnect();
@@ -168,10 +177,12 @@ export default function RequesterPage() {
       return;
     }
 
+    activeTokenRef.current = null;
+    setActiveToken(null);
     setIsSubmitting(true);
 
-    // 100% Real-time Socket.io Ingestion (Mode 1: Producer)
-    socket.emit('add_request', {
+    // Step 1: 100% Socket.io Requisition Submission
+    socket.emit('send_request', {
       patientName,
       hospital,
       city,
@@ -198,7 +209,7 @@ export default function RequesterPage() {
           <div className="donor-form-card">
             {dispatchResult ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                
+
                 {/* ── BOX 1: Matched Blood Bank Depot ─────────────── */}
                 <div style={{
                   background: '#FFFFFF',
@@ -223,6 +234,19 @@ export default function RequesterPage() {
                     }}>
                       <Hospital size={15} strokeWidth={2.2} />
                       <span>Matched Blood Depot</span>
+                      {dispatchResult.tokenId && (
+                        <span style={{
+                          background: '#E0F2FE',
+                          color: '#0369A1',
+                          padding: '2px 7px',
+                          borderRadius: '6px',
+                          fontSize: '0.7rem',
+                          fontWeight: 800,
+                          fontFamily: 'monospace'
+                        }}>
+                          {dispatchResult.tokenId}
+                        </span>
+                      )}
                     </span>
                     <span style={{
                       display: 'inline-flex',
@@ -353,10 +377,10 @@ export default function RequesterPage() {
                     {(dispatchResult.topDonors && dispatchResult.topDonors.length > 0
                       ? dispatchResult.topDonors
                       : [
-                          { id: 101, name: 'Sanjay Patel', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98250 12345' },
-                          { id: 105, name: 'Pooja Shah', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98251 67890' },
-                          { id: 112, name: 'Rajesh Dave', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98252 54321' }
-                        ]
+                        { id: 101, name: 'Sanjay Patel', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98250 12345' },
+                        { id: 105, name: 'Pooja Shah', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98251 67890' },
+                        { id: 112, name: 'Rajesh Dave', bloodGroup: dispatchResult.matchedDepot?.bloodGroup || 'A+', phone: '+91 98252 54321' }
+                      ]
                     ).slice(0, 3).map((donor, idx) => (
                       <div
                         key={donor.id || idx}
@@ -480,250 +504,283 @@ export default function RequesterPage() {
                   <p className="donor-card-sub">
                     Broadcast an emergency requisition via real-time Multilevel Priority Queue.
                   </p>
+
+                  {isSubmitting && activeToken && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: '#F0FDF4',
+                      border: '1.5px dashed #22C55E',
+                      borderRadius: '10px',
+                      padding: '10px 14px',
+                      marginTop: '12px'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '0.7rem', color: '#15803D', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          🎟️ Queue Token Assigned
+                        </div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#14532D', fontFamily: 'monospace' }}>
+                          {activeToken.tokenId}
+                        </div>
+                        <div style={{ fontSize: '0.74rem', color: '#166534', marginTop: '2px' }}>
+                          Priority: <strong>{activeToken.urgency}</strong> • Awaiting priority dispatch...
+                        </div>
+                      </div>
+                      <div style={{
+                        width: '18px',
+                        height: '18px',
+                        border: '2.5px solid #BBF7D0',
+                        borderTopColor: '#16A34A',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }}></div>
+                    </div>
+                  )}
                 </div>
 
                 <form onSubmit={handleSubmit} className="donor-fields-stack">
-              <div className="donor-form-columns">
+                  <div className="donor-form-columns">
 
-                {/* Left Column: Patient & Hospital Logistics */}
-                <div className="donor-form-col donor-col-left">
+                    {/* Left Column: Patient & Hospital Logistics */}
+                    <div className="donor-form-col donor-col-left">
 
-                  {/* Patient Name */}
-                  <div className="donor-field-group">
-                    <label className="donor-field-label">Patient Full Name</label>
-                    <input
-                      type="text"
-                      value={patientName}
-                      onChange={(e) => {
-                        setPatientName(e.target.value);
-                        if (errors.patientName) setErrors((prev) => ({ ...prev, patientName: validatePatientName(e.target.value) }));
-                      }}
-                      onBlur={() => handleBlur('patientName')}
-                      placeholder="e.g. Priya Sharma"
-                      className={`donor-field-input ${errors.patientName ? 'has-error' : ''}`}
-                    />
-                    <div className="field-error-slot">
-                      {errors.patientName && (
-                        <span className="field-hint-error">
-                          <AlertCircle size={12} />
-                          <span>{errors.patientName}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Hospital & ICU Ward */}
-                  <div className="donor-field-group">
-                    <label className="donor-field-label">Hospital & ICU Ward</label>
-                    <input
-                      type="text"
-                      value={hospital}
-                      onChange={(e) => {
-                        setHospital(e.target.value);
-                        if (errors.hospital) setErrors((prev) => ({ ...prev, hospital: validateHospital(e.target.value) }));
-                      }}
-                      onBlur={() => handleBlur('hospital')}
-                      placeholder="e.g. Apollo Hospital, Trauma ICU"
-                      className={`donor-field-input ${errors.hospital ? 'has-error' : ''}`}
-                    />
-                    <div className="field-error-slot">
-                      {errors.hospital && (
-                        <span className="field-hint-error">
-                          <AlertCircle size={12} />
-                          <span>{errors.hospital}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* City Depot */}
-                  <div className="donor-field-group">
-                    <label className="donor-field-label">City Depot / Region</label>
-                    <select
-                      value={city}
-                      onChange={(e) => {
-                        setCity(e.target.value);
-                        if (errors.city) setErrors((prev) => ({ ...prev, city: validateCity(e.target.value) }));
-                      }}
-                      onBlur={() => handleBlur('city')}
-                      className={`donor-field-input donor-field-select ${errors.city ? 'has-error' : ''}`}
-                    >
-                      <option value="">Select City (e.g. Ahmedabad)</option>
-                      {GUJARAT_CITIES.map((cityName) => (
-                        <option key={cityName} value={cityName}>
-                          {cityName}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="field-error-slot">
-                      {errors.city && (
-                        <span className="field-hint-error">
-                          <AlertCircle size={12} />
-                          <span>{errors.city}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-
-
-                  {/* Units Needed */}
-                  <div className="donor-field-group">
-                    <div className="donor-label-between">
-                      <label className="donor-field-label">Units Needed</label>
-                      <span className="donor-field-hint">
-                        {units ? (units === 1 ? '1 Unit (350ml)' : `${units} Units (700ml+)`) : 'Select units'}
-                      </span>
-                    </div>
-                    <div className="requester-units-grid">
-                      {UNIT_OPTIONS.map((u) => (
-                        <button
-                          key={u}
-                          type="button"
-                          className={`requester-unit-chip ${units === u ? 'active' : ''}`}
-                          onClick={() => {
-                            setUnits(u);
-                            if (errors.units) setErrors((prev) => ({ ...prev, units: '' }));
+                      {/* Patient Name */}
+                      <div className="donor-field-group">
+                        <label className="donor-field-label">Patient Full Name</label>
+                        <input
+                          type="text"
+                          value={patientName}
+                          onChange={(e) => {
+                            setPatientName(e.target.value);
+                            if (errors.patientName) setErrors((prev) => ({ ...prev, patientName: validatePatientName(e.target.value) }));
                           }}
-                        >
-                          {u} {u === 5 ? '+' : ''}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="field-error-slot">
-                      {errors.units && (
-                        <span className="field-hint-error">
-                          <AlertCircle size={12} />
-                          <span>{errors.units}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Hospital / Incident Location (GPS) - Left Side */}
-                  <div className="donor-field-group">
-                    <label className="donor-field-label">Hospital / Incident Location (GPS)</label>
-                    <button
-                      type="button"
-                      onClick={() => setIsMapModalOpen(true)}
-                      className={`location-picker-trigger-btn ${hasPickedLocation ? 'has-location' : ''}`}
-                    >
-                      <span className="location-trigger-left">
-                        <MapPin size={15} className="location-trigger-icon" />
-                        <span>
-                          {hasPickedLocation
-                            ? `${Number(latitude).toFixed(4)}° N, ${Number(longitude).toFixed(4)}° E ${city ? `(${city})` : ''}`
-                            : 'Select Location'}
-                        </span>
-                      </span>
-                      <span className="location-trigger-badge">
-                        {hasPickedLocation ? 'Change Pin' : 'Pick on Map ↗'}
-                      </span>
-                    </button>
-                  </div>
-
-                </div>
-
-                {/* Right Column: Blood Group, Urgency & Target */}
-                <div className="donor-form-col donor-col-right">
-
-                  {/* Blood Group Required */}
-                  <div className="donor-field-group">
-                    <div className="donor-label-between">
-                      <label className="donor-field-label">Blood Group Required</label>
-                      <span className="donor-field-hint">Red Cell Match</span>
-                    </div>
-                    <div className="blood-type-grid-small donor-blood-grid">
-                      {BLOOD_GROUPS.map((bg) => (
-                        <button
-                          key={bg}
-                          type="button"
-                          className={`blood-type-chip ${bloodGroup === bg ? 'active' : ''}`}
-                          onClick={() => {
-                            setBloodGroup(bg);
-                            if (errors.bloodGroup) setErrors((prev) => ({ ...prev, bloodGroup: '' }));
-                          }}
-                        >
-                          {bg}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="field-error-slot">
-                      {errors.bloodGroup && (
-                        <span className="field-hint-error">
-                          <AlertCircle size={12} />
-                          <span>{errors.bloodGroup}</span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="requester-compat-hint" style={{ marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div>
-                        <span className="requester-compat-label">Safe voluntary matches:</span>
-                        <strong className="requester-compat-pill">
-                          {bloodGroup && compatibleDonors.length > 0 ? compatibleDonors.join(', ') : 'Select blood group'}
-                        </strong>
+                          onBlur={() => handleBlur('patientName')}
+                          placeholder="e.g. Priya Sharma"
+                          className={`donor-field-input ${errors.patientName ? 'has-error' : ''}`}
+                        />
+                        <div className="field-error-slot">
+                          {errors.patientName && (
+                            <span className="field-hint-error">
+                              <AlertCircle size={12} />
+                              <span>{errors.patientName}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      {liveDonorsCount !== null && (
-                        <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>
-                          {liveDonorsCount} {liveDonorsCount === 1 ? 'Donor' : 'Donors'} in 3D Index ({city})
-                        </span>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Emergency Priority */}
-                  <div className="donor-field-group">
-                    <label className="donor-field-label">Emergency Priority Triage (24-Hour)</label>
-                    <div className="requester-urgency-stack">
-                      {URGENCY_LEVELS.map((lvl) => {
-                        const isSelected = urgency === lvl.id;
-                        return (
-                          <button
-                            key={lvl.id}
-                            type="button"
-                            className={`requester-priority-card ${lvl.id.toLowerCase()} ${isSelected ? 'active' : ''}`}
-                            onClick={() => setUrgency(lvl.id)}
-                          >
-                            <div className="priority-card-content">
-                              <span className="priority-radio-circle">
-                                <span className="priority-radio-inner"></span>
-                              </span>
-                              <div className="priority-card-body">
-                                <div className="priority-card-title-row">
-                                  <span className="priority-card-title">{lvl.title}</span>
-                                  <span className="priority-time-badge">{lvl.badge}</span>
+                      {/* Hospital & ICU Ward */}
+                      <div className="donor-field-group">
+                        <label className="donor-field-label">Hospital & ICU Ward</label>
+                        <input
+                          type="text"
+                          value={hospital}
+                          onChange={(e) => {
+                            setHospital(e.target.value);
+                            if (errors.hospital) setErrors((prev) => ({ ...prev, hospital: validateHospital(e.target.value) }));
+                          }}
+                          onBlur={() => handleBlur('hospital')}
+                          placeholder="e.g. Apollo Hospital, Trauma ICU"
+                          className={`donor-field-input ${errors.hospital ? 'has-error' : ''}`}
+                        />
+                        <div className="field-error-slot">
+                          {errors.hospital && (
+                            <span className="field-hint-error">
+                              <AlertCircle size={12} />
+                              <span>{errors.hospital}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* City Depot */}
+                      <div className="donor-field-group">
+                        <label className="donor-field-label">City Depot / Region</label>
+                        <select
+                          value={city}
+                          onChange={(e) => {
+                            setCity(e.target.value);
+                            if (errors.city) setErrors((prev) => ({ ...prev, city: validateCity(e.target.value) }));
+                          }}
+                          onBlur={() => handleBlur('city')}
+                          className={`donor-field-input donor-field-select ${errors.city ? 'has-error' : ''}`}
+                        >
+                          <option value="">Select City (e.g. Ahmedabad)</option>
+                          {GUJARAT_CITIES.map((cityName) => (
+                            <option key={cityName} value={cityName}>
+                              {cityName}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="field-error-slot">
+                          {errors.city && (
+                            <span className="field-hint-error">
+                              <AlertCircle size={12} />
+                              <span>{errors.city}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+
+
+                      {/* Units Needed */}
+                      <div className="donor-field-group">
+                        <div className="donor-label-between">
+                          <label className="donor-field-label">Units Needed</label>
+                          <span className="donor-field-hint">
+                            {units ? (units === 1 ? '1 Unit (350ml)' : `${units} Units (700ml+)`) : 'Select units'}
+                          </span>
+                        </div>
+                        <div className="requester-units-grid">
+                          {UNIT_OPTIONS.map((u) => (
+                            <button
+                              key={u}
+                              type="button"
+                              className={`requester-unit-chip ${units === u ? 'active' : ''}`}
+                              onClick={() => {
+                                setUnits(u);
+                                if (errors.units) setErrors((prev) => ({ ...prev, units: '' }));
+                              }}
+                            >
+                              {u} {u === 5 ? '+' : ''}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="field-error-slot">
+                          {errors.units && (
+                            <span className="field-hint-error">
+                              <AlertCircle size={12} />
+                              <span>{errors.units}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Hospital / Incident Location (GPS) - Left Side */}
+                      <div className="donor-field-group">
+                        <label className="donor-field-label">Hospital / Incident Location (GPS)</label>
+                        <button
+                          type="button"
+                          onClick={() => setIsMapModalOpen(true)}
+                          className={`location-picker-trigger-btn ${hasPickedLocation ? 'has-location' : ''}`}
+                        >
+                          <span className="location-trigger-left">
+                            <MapPin size={15} className="location-trigger-icon" />
+                            <span>
+                              {hasPickedLocation
+                                ? `${Number(latitude).toFixed(4)}° N, ${Number(longitude).toFixed(4)}° E ${city ? `(${city})` : ''}`
+                                : 'Select Location'}
+                            </span>
+                          </span>
+                          <span className="location-trigger-badge">
+                            {hasPickedLocation ? 'Change Pin' : 'Pick on Map ↗'}
+                          </span>
+                        </button>
+                      </div>
+
+                    </div>
+
+                    {/* Right Column: Blood Group, Urgency & Target */}
+                    <div className="donor-form-col donor-col-right">
+
+                      {/* Blood Group Required */}
+                      <div className="donor-field-group">
+                        <div className="donor-label-between">
+                          <label className="donor-field-label">Blood Group Required</label>
+                          <span className="donor-field-hint">Red Cell Match</span>
+                        </div>
+                        <div className="blood-type-grid-small donor-blood-grid">
+                          {BLOOD_GROUPS.map((bg) => (
+                            <button
+                              key={bg}
+                              type="button"
+                              className={`blood-type-chip ${bloodGroup === bg ? 'active' : ''}`}
+                              onClick={() => {
+                                setBloodGroup(bg);
+                                if (errors.bloodGroup) setErrors((prev) => ({ ...prev, bloodGroup: '' }));
+                              }}
+                            >
+                              {bg}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="field-error-slot">
+                          {errors.bloodGroup && (
+                            <span className="field-hint-error">
+                              <AlertCircle size={12} />
+                              <span>{errors.bloodGroup}</span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="requester-compat-hint" style={{ marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div>
+                            <span className="requester-compat-label">Safe voluntary matches:</span>
+                            <strong className="requester-compat-pill">
+                              {bloodGroup && compatibleDonors.length > 0 ? compatibleDonors.join(', ') : 'Select blood group'}
+                            </strong>
+                          </div>
+                          {liveDonorsCount !== null && (
+                            <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>
+                              {liveDonorsCount} {liveDonorsCount === 1 ? 'Donor' : 'Donors'} in 3D Index ({city})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Emergency Priority */}
+                      <div className="donor-field-group">
+                        <label className="donor-field-label">Emergency Priority Triage (24-Hour)</label>
+                        <div className="requester-urgency-stack">
+                          {URGENCY_LEVELS.map((lvl) => {
+                            const isSelected = urgency === lvl.id;
+                            return (
+                              <button
+                                key={lvl.id}
+                                type="button"
+                                className={`requester-priority-card ${lvl.id.toLowerCase()} ${isSelected ? 'active' : ''}`}
+                                onClick={() => setUrgency(lvl.id)}
+                              >
+                                <div className="priority-card-content">
+                                  <span className="priority-radio-circle">
+                                    <span className="priority-radio-inner"></span>
+                                  </span>
+                                  <div className="priority-card-body">
+                                    <div className="priority-card-title-row">
+                                      <span className="priority-card-title">{lvl.title}</span>
+                                      <span className="priority-time-badge">{lvl.badge}</span>
+                                    </div>
+                                    <p className="priority-card-desc">{lvl.desc}</p>
+                                  </div>
                                 </div>
-                                <p className="priority-card-desc">{lvl.desc}</p>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
                     </div>
+
                   </div>
 
-                </div>
+                  {/* Submit Button */}
+                  <button type="submit" disabled={isSubmitting} className="donor-submit-btn">
+                    <span>
+                      {isSubmitting ? 'Broadcasting Emergency Requisition...' : `Broadcast Emergency Request${units && bloodGroup ? ` (${units} ${units === 1 ? 'Unit' : 'Units'} of ${bloodGroup})` : units ? ` (${units} ${units === 1 ? 'Unit' : 'Units'})` : bloodGroup ? ` (${bloodGroup})` : ''}`}
+                    </span>
+                    <span className="btn-arrow-icon">→</span>
+                  </button>
 
-              </div>
-
-              {/* Submit Button */}
-              <button type="submit" disabled={isSubmitting} className="donor-submit-btn">
-                <span>
-                  {isSubmitting ? 'Broadcasting Emergency Requisition...' : `Broadcast Emergency Request${units && bloodGroup ? ` (${units} ${units === 1 ? 'Unit' : 'Units'} of ${bloodGroup})` : units ? ` (${units} ${units === 1 ? 'Unit' : 'Units'})` : bloodGroup ? ` (${bloodGroup})` : ''}`}
-                </span>
-                <span className="btn-arrow-icon">→</span>
-              </button>
-
-              {isSubmitted && (
-                <div className="portal-success-toast">
-                  <CheckCircle2 size={16} color="#4ADE80" strokeWidth={2.5} style={{ flexShrink: 0 }} />
-                  <span>Emergency broadcast sent! Requisition saved with GPS ({submittedCoords ? `${submittedCoords.lat}° N, ${submittedCoords.lng}° E` : `${latitude}° N, ${longitude}° E`}). Alerting verified {bloodGroup ? compatibleDonors.join('/') : 'compatible'} voluntary donors near {hospital || city || 'depot'}.</span>
-                </div>
-              )}
-            </form>
-          </>
-        )}
-      </div>
+                  {isSubmitted && (
+                    <div className="portal-success-toast">
+                      <CheckCircle2 size={16} color="#4ADE80" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+                      <span>Emergency broadcast sent! Requisition saved with GPS ({submittedCoords ? `${submittedCoords.lat}° N, ${submittedCoords.lng}° E` : `${latitude}° N, ${longitude}° E`}). Alerting verified {bloodGroup ? compatibleDonors.join('/') : 'compatible'} voluntary donors near {hospital || city || 'depot'}.</span>
+                    </div>
+                  )}
+                </form>
+              </>
+            )}
+          </div>
         </div>
 
         {/* ── RIGHT: Full Clinic Scene Artwork (Clean, by default) ─── */}

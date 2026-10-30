@@ -53,51 +53,49 @@ async function findNearestBloodBank(request) {
   };
 }
 
-/**
- * 100% Real-time Socket.io Multilevel Queue Engine
- * No HTTP setup - fully WebSocket driven
- */
 export function setupQueueSocket(io) {
   io.on('connection', (socket) => {
     console.log(`[Socket.io] Client connected: ${socket.id}`);
 
-    // Broadcast current queue state on connect
-    socket.emit('queue_state', {
-      critical: triageMLQ.critical.items,
-      urgent: triageMLQ.urgent.items,
-      scheduled: triageMLQ.scheduled.items
-    });
+    // STEP 1: Client submits request -> emits 'send_request'
+    socket.on('send_request', async (payload) => {
+      // Generate Unique Queue Ticket Token ID based on urgency and timestamp
+      const tierPrefix = (payload.urgency || 'CRITICAL').substring(0, 4).toUpperCase();
+      const tokenId = `TOKEN-${tierPrefix}-${Date.now().toString().slice(-4)}-${Math.floor(100 + Math.random() * 900)}`;
 
-    // MODE 1: PRODUCER - Add requisition to queue
-    socket.on('add_request', async (payload) => {
-      console.log(`[Socket.io MLQ] Ingestion: ${payload.patientName} (${payload.urgency || 'CRITICAL'})`);
+      console.log(`[Socket.io] Ingestion: ${payload.patientName} -> Assigned Token: ${tokenId}`);
 
-      // 1. Add to priority queue
+      // Add to Multilevel Queue with Token ID
       triageMLQ.add_queue({
         ...payload,
+        tokenId,
         socketId: socket.id
       });
 
-      // Broadcast live queue update to all clients
-      io.emit('queue_state', {
-        critical: triageMLQ.critical.items,
-        urgent: triageMLQ.urgent.items,
-        scheduled: triageMLQ.scheduled.items
+      // STEP 2: Immediately emit unique token back to client so UI shows waiting progress
+      socket.emit('send_queue_token_id', {
+        tokenId,
+        urgency: payload.urgency || 'CRITICAL',
+        patientName: payload.patientName,
+        message: 'Requisition queued successfully. Awaiting priority dispatch.'
       });
 
-      // 2. MODE 2: CONSUMER - Auto-drain priority queue
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // STEP 3: Queue processing delay (1000ms priority processing window)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // STEP 4: Drain queue in strict priority order (Critical -> Urgent -> Scheduled)
       while (!triageMLQ.isEmpty()) {
         const { request, triage } = triageMLQ.dequeue();
 
-        // Match depot & in-memory donors
+        // Match nearest depot using GPS coordinates
         const matchedDepot = await findNearestBloodBank(request);
+
+        // Direct 3D Donor Array in-memory lookup
         const cityDonors = donorManager.donors[request.city] || {};
         const backupDonorsCount = Object.values(cityDonors).reduce((s, list) => s + (list?.length || 0), 0) || 14;
         const topDonors = donorManager.get_best_3_option(request.city, request.bloodGroup);
 
-        // Save to MySQL
+        // Save record to MySQL
         const pool = getPool();
         const [insertResult] = await pool.query(`
           INSERT INTO requests (patient_name, hospital, city, blood_group, units, urgency, is_immediate, latitude, longitude, status)
@@ -114,9 +112,10 @@ export function setupQueueSocket(io) {
           Number(request.longitude)
         ]);
 
-        const result = {
+        const resultPayload = {
+          tokenId: request.tokenId,
           success: true,
-          message: 'Emergency blood requisition dispatched successfully via Real-time Socket.io Queue',
+          message: 'Emergency blood requisition dispatched successfully',
           requestId: insertResult.insertId,
           triage: {
             tier: triage.tier,
@@ -128,19 +127,12 @@ export function setupQueueSocket(io) {
           topDonors
         };
 
-        // Emit matched result to the requester socket
+        // STEP 5: Emit 'send_result' paired with the exact tokenId
         if (request.socketId) {
-          io.to(request.socketId).emit('request_matched', result);
+          io.to(request.socketId).emit('send_result', resultPayload);
         } else {
-          io.emit('request_matched', result);
+          io.emit('send_result', resultPayload);
         }
-
-        // Broadcast updated queue state after drain
-        io.emit('queue_state', {
-          critical: triageMLQ.critical.items,
-          urgent: triageMLQ.urgent.items,
-          scheduled: triageMLQ.scheduled.items
-        });
       }
     });
 
@@ -149,4 +141,3 @@ export function setupQueueSocket(io) {
     });
   });
 }
-
