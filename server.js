@@ -28,7 +28,6 @@ async function bootstrap() {
 🚀 BloodLink Server is running!
 📡 HTTP & WebSocket: http://localhost:${config.port}
 ⚡ Multilevel Queue: 100% Socket.io Real-time Driven
-🩺 Health Check: http://localhost:${config.port}/api/health
       `);
     });
   } catch (error) {

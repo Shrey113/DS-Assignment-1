@@ -1,5 +1,5 @@
 import { getPool } from '../config/db.js';
-import { GUJARAT_DISTRICTS_34, resolveDistrict } from '../constants/districts.js';
+import { GUJARAT_DISTRICTS_34, resolveDistrict } from '../core/districts.js';
 
 export async function getAllCitiesBloodBanks(req, res, next) {
   try {
@@ -223,7 +223,7 @@ export async function getDistrictStats(req, res, next) {
     const currentHour = new Date().getHours();
     const currentSlot = currentHour >= 8 && currentHour < 12 ? 'morning'
       : currentHour >= 12 && currentHour < 16 ? 'afternoon'
-      : currentHour >= 16 && currentHour < 20 ? 'evening' : 'off_hours';
+        : currentHour >= 16 && currentHour < 20 ? 'evening' : 'off_hours';
 
     const [rows] = await getPool().query(`
       SELECT 

@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { config } from './config/env.js';
 import bloodBankRoutes from './routes/bloodbank.routes.js';
-import allDsRoutes from './core/data_structures/all_ds_rout.js';
+import allDsRoutes from './routes/all_ds_rout.js';
 
 const app = express();
 
@@ -17,10 +17,6 @@ app.use((req, res, next) => {
 
 app.use('/api/blood-banks', bloodBankRoutes);
 app.use('/api/ds', allDsRoutes);
-
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', server: 'BloodLink Backend' });
-});
 
 app.use((err, req, res, next) => {
   console.error('[Server Error Handler]', err.message);
