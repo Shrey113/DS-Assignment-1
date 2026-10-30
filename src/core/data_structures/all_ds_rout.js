@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { donorManager } from './3D_Array_Donor.js';
-import { triageMLQ } from './MultilevelQueue.js';
 
 const router = Router();
 
@@ -42,15 +41,6 @@ router.get('/3d-array/:city?/:bloodGroup?', (req, res) => {
   return res.json({
     success: true,
     data: donorManager.donors
-  });
-});
-
-router.get('/queue', (req, res) => {
-  return res.json({
-    success: true,
-    critical: triageMLQ.critical.items,
-    urgent: triageMLQ.urgent.items,
-    scheduled: triageMLQ.scheduled.items
   });
 });
 

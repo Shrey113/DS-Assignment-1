@@ -118,7 +118,7 @@ export default function OurAreaPage() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch('http://localhost:5100/api/gujarat/districts');
+        const res = await fetch('http://localhost:5100/api/blood-banks/districts');
         const data = await res.json();
         if (data.success) {
           setDistrictStats(data.districts || {});
