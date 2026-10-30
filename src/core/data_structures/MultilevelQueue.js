@@ -28,10 +28,14 @@ class MultilevelQueue {
         return null;
     }
 
-    // Adds to queue and auto-triggers dequeue for immediate triage processing
+    // Adds a requisition to the queue (Tier 1, Tier 2, or Tier 3)
     add_queue(req) {
-        this.enqueue(req);
-        return this.dequeue();
+        return this.enqueue(req);
+    }
+
+    // Checks if all 3 priority queues are empty
+    isEmpty() {
+        return this.critical.isEmpty() && this.urgent.isEmpty() && this.scheduled.isEmpty();
     }
 }
 

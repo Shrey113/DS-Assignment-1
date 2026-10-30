@@ -24,55 +24,67 @@ const TRIAGE_TITLES = {
 
 /**
  * Handles Emergency Blood Requisition Dispatching:
- * 1. add_queue() enqueues and auto-triggers dequeue for priority dispatch
- * 2. findNearestBloodBank() helper matches nearest depot using GPS & cold stock
- * 3. Direct in-memory lookup of top 3 donors from 3D Array (no SQL reload)
- * 4. Save dispatched record in MySQL database
+ * 1. add_queue() puts requisition into Multilevel Queue
+ * 2. Waits briefly for processing lifecycle
+ * 3. while (!triageMLQ.isEmpty()) drains queue by strict priority (Critical -> Urgent -> Scheduled)
+ * 4. Saves to MySQL and returns response
  */
 export async function createRequest(req, res, next) {
   try {
     const pool = getPool();
 
-    // 1. Add to queue & auto-trigger priority dequeue
-    const { request, triage } = triageMLQ.add_queue(req.body);
+    // 1. Add new requisition into the queue
+    triageMLQ.add_queue(req.body);
 
-    // 2. Find nearest candidate blood bank using GPS coordinates
-    const matchedDepot = await findNearestBloodBank(request);
+    // 2. Wait briefly to simulate processing / queue lifecycle
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // 3. Direct 3D Donor Array in-memory lookup (zero DB re-query)
-    const cityDonors = donorManager.donors[request.city] || {};
-    const backupDonorsCount = Object.values(cityDonors).reduce((s, list) => s + (list?.length || 0), 0) || 14;
-    const topDonors = donorManager.get_best_3_option(request.city, request.bloodGroup);
+    let dispatchedResponse = null;
 
-    // 4. Save record to MySQL requests table
-    const [insertResult] = await pool.query(`
-      INSERT INTO requests (patient_name, hospital, city, blood_group, units, urgency, is_immediate, latitude, longitude, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'MATCHED');
-    `, [
-      request.patientName,
-      request.hospital,
-      request.city,
-      request.bloodGroup,
-      Number(request.units) || 1,
-      request.urgency,
-      request.isImmediate ? 1 : 0,
-      Number(request.latitude),
-      Number(request.longitude)
-    ]);
+    // 3. Priority Dispatch Loop: Drains queue until empty (Critical -> Urgent -> Scheduled)
+    while (!triageMLQ.isEmpty()) {
+      const { request, triage } = triageMLQ.dequeue();
 
-    return res.status(201).json({
-      success: true,
-      message: 'Emergency blood requisition dispatched successfully',
-      requestId: insertResult.insertId,
-      triage: {
-        tier: triage.tier,
-        tierId: triage.tierId,
-        tierTitle: TRIAGE_TITLES[triage.tierId] || 'Tier 1: Emergency'
-      },
-      matchedDepot,
-      backupDonorsCount,
-      topDonors
-    });
+      // Find nearest blood bank using GPS coordinates
+      const matchedDepot = await findNearestBloodBank(request);
+
+      // Direct in-memory 3D Donor Array lookup (zero DB re-query)
+      const cityDonors = donorManager.donors[request.city] || {};
+      const backupDonorsCount = Object.values(cityDonors).reduce((s, list) => s + (list?.length || 0), 0) || 14;
+      const topDonors = donorManager.get_best_3_option(request.city, request.bloodGroup);
+
+      // Save record to MySQL requests table
+      const [insertResult] = await pool.query(`
+        INSERT INTO requests (patient_name, hospital, city, blood_group, units, urgency, is_immediate, latitude, longitude, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'MATCHED');
+      `, [
+        request.patientName,
+        request.hospital,
+        request.city,
+        request.bloodGroup,
+        Number(request.units) || 1,
+        request.urgency,
+        request.isImmediate ? 1 : 0,
+        Number(request.latitude),
+        Number(request.longitude)
+      ]);
+
+      dispatchedResponse = {
+        success: true,
+        message: 'Emergency blood requisition dispatched successfully',
+        requestId: insertResult.insertId,
+        triage: {
+          tier: triage.tier,
+          tierId: triage.tierId,
+          tierTitle: TRIAGE_TITLES[triage.tierId] || 'Tier 1: Emergency'
+        },
+        matchedDepot,
+        backupDonorsCount,
+        topDonors
+      };
+    }
+
+    return res.status(201).json(dispatchedResponse);
   } catch (error) {
     console.error('[Server Log: Request Error]', error.message);
     next(error);
