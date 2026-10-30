@@ -77,7 +77,7 @@ export function setup_queue_socket(io) {
         message: 'Requisition queued successfully. Awaiting priority dispatch.'
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       while (!triageMLQ.isEmpty()) {
         const { request, triage } = triageMLQ.dequeue();
