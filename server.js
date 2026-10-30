@@ -1,20 +1,34 @@
+import http from 'http';
+import { Server } from 'socket.io';
 import app from './src/app.js';
 import { config } from './src/config/env.js';
 import { createAllTables } from './src/config/tables.js';
+import { setupQueueSocket } from './src/core/data_structures/queue.socket.js';
 
 async function bootstrap() {
   try {
     // Automatically verify/create database and tables on startup
     await createAllTables();
 
-    // Start Express HTTP Server on configured port
-    app.listen(config.port, () => {
+    // Create HTTP Server for Express & Socket.io
+    const server = http.createServer(app);
+
+    const io = new Server(server, {
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST']
+      }
+    });
+
+    // Initialize 100% Real-time Socket.io Queue System
+    setupQueueSocket(io);
+
+    server.listen(config.port, () => {
       console.log(`
 🚀 BloodLink Server is running!
-📡 URL: http://localhost:${config.port}
+📡 HTTP & WebSocket: http://localhost:${config.port}
+⚡ Multilevel Queue: 100% Socket.io Real-time Driven
 🩺 Health Check: http://localhost:${config.port}/api/health
-🩸 Donors Endpoint: http://localhost:${config.port}/api/donors
-📋 Requests Endpoint: http://localhost:${config.port}/api/requests
       `);
     });
   } catch (error) {

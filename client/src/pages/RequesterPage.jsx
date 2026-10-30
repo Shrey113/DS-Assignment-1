@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import PortalHeader from '../components/PortalHeader';
 import { AlertCircle, MapPin, CheckCircle2, Sparkles, Hospital, PhoneCall, Phone, Droplet, Plus } from 'lucide-react';
 import GUJARAT_CITIES from '../constants/gujaratCities';
@@ -66,6 +67,36 @@ export default function RequesterPage() {
   const [submittedCoords, setSubmittedCoords] = useState(null);
   const [dispatchResult, setDispatchResult] = useState(null);
   const [liveDonorsCount, setLiveDonorsCount] = useState(null);
+  const [socket, setSocket] = useState(null);
+  const [queueState, setQueueState] = useState({ critical: [], urgent: [], scheduled: [] });
+
+  // 100% Real-time Socket.io Connection
+  useEffect(() => {
+    const s = io('http://localhost:5100');
+    setSocket(s);
+
+    s.on('connect', () => {
+      console.log('[Socket.io Client] Connected to MLQ WebSocket:', s.id);
+    });
+
+    s.on('queue_state', (state) => {
+      setQueueState(state || { critical: [], urgent: [], scheduled: [] });
+    });
+
+    s.on('request_matched', (data) => {
+      console.log('[Socket.io Client] Requisition matched & dispatched:', data);
+      setDispatchResult(data);
+      setSubmittedCoords({
+        lat: Number(latitude) || 23.0225,
+        lng: Number(longitude) || 72.5714,
+        id: data.requestId
+      });
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+    });
+
+    return () => s.disconnect();
+  }, [latitude, longitude]);
 
   // Live 3D Array query whenever city and bloodGroup are selected
   useEffect(() => {
@@ -112,7 +143,7 @@ export default function RequesterPage() {
     setErrors((prev) => ({ ...prev, [field]: errorMsg }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     // Validate all fields on submit
@@ -132,56 +163,25 @@ export default function RequesterPage() {
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      const res = await fetch('http://localhost:5100/api/ds/queue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          patientName,
-          hospital,
-          city,
-          bloodGroup,
-          units: Number(units) || 1,
-          urgency: urgency || 'CRITICAL',
-          isImmediate: urgency === 'CRITICAL',
-          latitude: Number(latitude) || 23.0225,
-          longitude: Number(longitude) || 72.5714
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        // Direct synchronization with the 3D Array route: /api/ds/3d-array/:city/:bloodGroup
-        try {
-          const dsRes = await fetch(`http://localhost:5100/api/ds/3d-array/${encodeURIComponent(city)}/${encodeURIComponent(bloodGroup)}`);
-          const dsData = await dsRes.json();
-          if (dsData.success && Array.isArray(dsData.best_3_options) && dsData.best_3_options.length > 0) {
-            data.topDonors = dsData.best_3_options;
-          }
-        } catch (dsErr) {
-          console.warn('[3D Array] Fallback to backend topDonors:', dsErr);
-        }
-
-        setDispatchResult(data);
-        setSubmittedCoords({
-          lat: Number(latitude) || 23.0225,
-          lng: Number(longitude) || 72.5714,
-          id: data.requestId
-        });
-        setIsSubmitted(true);
-      } else {
-        console.error('Request failed:', data);
-        setIsSubmitted(true);
-        setTimeout(() => setIsSubmitted(false), 5000);
-      }
-    } catch (err) {
-      console.error('Network error during request submission:', err);
-      setIsSubmitted(true);
-      setTimeout(() => setIsSubmitted(false), 5000);
-    } finally {
-      setIsSubmitting(false);
+    if (!socket) {
+      console.error('[Socket.io] Connection not established');
+      return;
     }
+
+    setIsSubmitting(true);
+
+    // 100% Real-time Socket.io Ingestion (Mode 1: Producer)
+    socket.emit('add_request', {
+      patientName,
+      hospital,
+      city,
+      bloodGroup,
+      units: Number(units) || 1,
+      urgency: urgency || 'CRITICAL',
+      isImmediate: urgency === 'CRITICAL',
+      latitude: Number(latitude) || 23.0225,
+      longitude: Number(longitude) || 72.5714
+    });
   };
 
   const compatibleDonors = bloodGroup && COMPATIBILITY_MAP[bloodGroup] ? COMPATIBILITY_MAP[bloodGroup] : [];
@@ -453,11 +453,32 @@ export default function RequesterPage() {
               <>
                 {/* Card Header */}
                 <div className="donor-card-top">
-                  <h2 className="donor-card-heading">
-                    Request blood<span className="coral-dot">.</span>
-                  </h2>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h2 className="donor-card-heading">
+                      Request blood<span className="coral-dot">.</span>
+                    </h2>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      color: socket ? '#059669' : '#DC2626',
+                      background: socket ? '#ECFDF5' : '#FEF2F2',
+                      padding: '3px 8px',
+                      borderRadius: '12px'
+                    }}>
+                      <span style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: socket ? '#10B981' : '#EF4444'
+                      }}></span>
+                      {socket ? 'Socket.io Live' : 'Connecting...'}
+                    </span>
+                  </div>
                   <p className="donor-card-sub">
-                    Broadcast an emergency requisition to nearby verified voluntary donors.
+                    Broadcast an emergency requisition via real-time Multilevel Priority Queue.
                   </p>
                 </div>
 

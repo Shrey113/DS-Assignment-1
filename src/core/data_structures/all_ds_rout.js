@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { donorManager } from './3D_Array_Donor.js';
 import { triageMLQ } from './MultilevelQueue.js';
-import { createRequest } from '../../controllers/request.controller.js';
 
 const router = Router();
 
@@ -47,11 +46,7 @@ router.get('/3d-array/:city?/:bloodGroup?', (req, res) => {
   });
 });
 
-// --- Multilevel Queue (MLQ) Routes ---
-// POST /api/ds/queue - Enqueue & dispatch emergency blood requisition
-router.post('/queue', createRequest);
-
-// GET /api/ds/queue - View current state of all 3 urgency tiers
+// GET /api/ds/queue - View current live state of all 3 urgency tiers
 router.get('/queue', (req, res) => {
   return res.json({
     success: true,
