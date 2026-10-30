@@ -30,7 +30,7 @@ const mlq = new MultilevelQueue();
 mlq.enqueue({
   patientName: 'Ramesh Patel',
   hospital: 'Sterling Hospital',
-  urgency: 'SCHEDULED',
+  priority: 'SCHEDULED',
   units: 2
 });
 
@@ -38,7 +38,7 @@ mlq.enqueue({
 mlq.enqueue({
   patientName: 'Priya Sharma',
   hospital: 'Apollo Hospital',
-  urgency: 'URGENT',
+  priority: 'URGENT',
   units: 3
 });
 
@@ -46,7 +46,7 @@ mlq.enqueue({
 mlq.enqueue({
   patientName: 'Amit Verma (Crash 1)',
   hospital: 'Civil Hospital ICU',
-  urgency: 'CRITICAL',
+  priority: 'CRITICAL',
   units: 4
 });
 
@@ -54,7 +54,7 @@ mlq.enqueue({
 mlq.enqueue({
   patientName: 'Neha Desai (Crash 2)',
   hospital: 'Zydus Hospital ICU',
-  isImmediate: true,
+  priority: 'CRITICAL',
   units: 1
 });
 

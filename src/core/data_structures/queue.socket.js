@@ -58,7 +58,8 @@ export function setupQueueSocket(io) {
     console.log(`[Socket.io] Client connected: ${socket.id}`);
 
     socket.on('send_request', async (payload) => {
-      const tierPrefix = (payload.urgency || 'CRITICAL').substring(0, 4).toUpperCase();
+      const priority = payload.priority;
+      const tierPrefix = priority.substring(0, 4).toUpperCase();
       const tokenId = `TOKEN-${tierPrefix}-${Date.now().toString().slice(-4)}-${Math.floor(100 + Math.random() * 900)}`;
 
       console.log(`[Socket.io] Ingestion: ${payload.patientName} -> Assigned Token: ${tokenId}`);
@@ -69,9 +70,9 @@ export function setupQueueSocket(io) {
         socketId: socket.id
       });
 
-      socket.emit('send_queue_token_id', {
+      io.to(socket.id).emit('send_queue_token_id', {
         tokenId,
-        urgency: payload.urgency || 'CRITICAL',
+        priority,
         patientName: payload.patientName,
         message: 'Requisition queued successfully. Awaiting priority dispatch.'
       });
@@ -82,9 +83,6 @@ export function setupQueueSocket(io) {
         const { request, triage } = triageMLQ.dequeue();
 
         const matchedDepot = await findNearestBloodBank(request);
-
-        const cityDonors = donorManager.donors[request.city] || {};
-        const backupDonorsCount = Object.values(cityDonors).reduce((s, list) => s + (list?.length || 0), 0) || 14;
         const topDonors = donorManager.get_best_3_option(request.city, request.bloodGroup);
 
         const pool = getPool();
@@ -97,8 +95,8 @@ export function setupQueueSocket(io) {
           request.city,
           request.bloodGroup,
           Number(request.units) || 1,
-          request.urgency,
-          request.isImmediate ? 1 : 0,
+          request.priority,
+          request.priority === 'CRITICAL' ? 1 : 0,
           Number(request.latitude),
           Number(request.longitude)
         ]);
@@ -114,15 +112,10 @@ export function setupQueueSocket(io) {
             tierTitle: TRIAGE_TITLES[triage.tierId] || 'Tier 1: Emergency'
           },
           matchedDepot,
-          backupDonorsCount,
           topDonors
         };
 
-        if (request.socketId) {
-          io.to(request.socketId).emit('send_result', resultPayload);
-        } else {
-          io.emit('send_result', resultPayload);
-        }
+        io.to(request.socketId).emit('send_result', resultPayload);
       }
     });
 

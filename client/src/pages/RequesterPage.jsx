@@ -188,6 +188,7 @@ export default function RequesterPage() {
       city,
       bloodGroup,
       units: Number(units) || 1,
+      priority: urgency || 'CRITICAL',
       urgency: urgency || 'CRITICAL',
       isImmediate: urgency === 'CRITICAL',
       latitude: Number(latitude) || 23.0225,
@@ -366,7 +367,7 @@ export default function RequesterPage() {
                       letterSpacing: '0.04em'
                     }}>
                       <Droplet size={14} fill="#DC2626" color="#DC2626" strokeWidth={1.5} />
-                      <span>Voluntary Donors ({dispatchResult.backupDonorsCount || 14} in {dispatchResult.matchedDepot?.city || city || 'Area'})</span>
+                      <span>Voluntary Backup Donors</span>
                     </span>
                     <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>
                       Top 3 Contact List
