@@ -66,7 +66,6 @@ export default function RequesterPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedCoords, setSubmittedCoords] = useState(null);
   const [dispatchResult, setDispatchResult] = useState(null);
-  const [liveDonorsCount, setLiveDonorsCount] = useState(null);
   const [socket, setSocket] = useState(null);
   const [activeToken, setActiveToken] = useState(null);
   const activeTokenRef = useRef(null);
@@ -102,23 +101,6 @@ export default function RequesterPage() {
 
     return () => s.disconnect();
   }, [latitude, longitude]);
-
-  useEffect(() => {
-    if (city && bloodGroup) {
-      fetch(`http://localhost:5100/api/ds/get-donors/${encodeURIComponent(city)}/${encodeURIComponent(bloodGroup)}`)
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success && res.donors) {
-            setLiveDonorsCount(res.donors.length);
-          } else {
-            setLiveDonorsCount(0);
-          }
-        })
-        .catch(() => setLiveDonorsCount(null));
-    } else {
-      setLiveDonorsCount(null);
-    }
-  }, [city, bloodGroup]);
 
   const handleAutoFill = () => {
     const data = getRandomRequesterData();
@@ -610,12 +592,19 @@ export default function RequesterPage() {
                           className={`location-picker-trigger-btn ${hasPickedLocation ? 'has-location' : ''}`}
                         >
                           <span className="location-trigger-left">
-                            <MapPin size={15} className="location-trigger-icon" />
-                            <span>
-                              {hasPickedLocation
-                                ? `${Number(latitude).toFixed(4)}° N, ${Number(longitude).toFixed(4)}° E ${city ? `(${city})` : ''}`
-                                : 'Select Location'}
-                            </span>
+                            <MapPin size={16} className="location-trigger-icon" />
+                            {hasPickedLocation ? (
+                              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', lineHeight: 1.25 }}>
+                                <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1F2937' }}>
+                                  {city || 'Pinned Location'}
+                                </span>
+                                <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#4B5563' }}>
+                                  {Number(latitude).toFixed(4)}° N, {Number(longitude).toFixed(4)}° E
+                                </span>
+                              </span>
+                            ) : (
+                              <span>Select Location</span>
+                            )}
                           </span>
                           <span className="location-trigger-badge">
                             {hasPickedLocation ? 'Change Pin' : 'Pick on Map ↗'}
@@ -655,18 +644,11 @@ export default function RequesterPage() {
                             </span>
                           )}
                         </div>
-                        <div className="requester-compat-hint" style={{ marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div>
-                            <span className="requester-compat-label">Safe voluntary matches:</span>
-                            <strong className="requester-compat-pill">
-                              {bloodGroup && compatibleDonors.length > 0 ? compatibleDonors.join(', ') : 'Select blood group'}
-                            </strong>
-                          </div>
-                          {liveDonorsCount !== null && (
-                            <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>
-                              {liveDonorsCount} {liveDonorsCount === 1 ? 'Donor' : 'Donors'} in 3D Index ({city})
-                            </span>
-                          )}
+                        <div className="requester-compat-hint" style={{ marginTop: '4px' }}>
+                          <span className="requester-compat-label">Safe voluntary matches:</span>
+                          <strong className="requester-compat-pill">
+                            {bloodGroup && compatibleDonors.length > 0 ? compatibleDonors.join(', ') : 'Select blood group'}
+                          </strong>
                         </div>
                       </div>
 
