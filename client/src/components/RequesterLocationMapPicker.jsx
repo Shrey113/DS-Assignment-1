@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ChevronLeft, Navigation, RotateCcw, Check, MapPin } from 'lucide-react';
+import { ChevronLeft, Navigation, RotateCcw, MapPin } from 'lucide-react';
 import gujaratGeoJson from '../assets/gujarat_districts_34.json';
 import '../styles/requester-map.css';
 
@@ -362,8 +362,7 @@ export default function RequesterLocationMapPicker({
             onClick={handleConfirm}
             className="location-pane-confirm-btn"
           >
-            <Check size={15} />
-            <span>OK, Set Location</span>
+            Set Location
           </button>
         </div>
       </div>

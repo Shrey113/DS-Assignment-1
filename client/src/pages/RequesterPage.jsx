@@ -455,34 +455,13 @@ export default function RequesterPage() {
               <div className={`requester-slider-track ${isMapActive ? 'slide-to-map' : ''}`}>
                 <div className="requester-slide-pane requester-form-pane">
                   <div className="donor-card-top">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h2 className="donor-card-heading">
                       Request blood<span className="coral-dot">.</span>
                     </h2>
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      color: socket ? '#059669' : '#DC2626',
-                      background: socket ? '#ECFDF5' : '#FEF2F2',
-                      padding: '3px 8px',
-                      borderRadius: '12px'
-                    }}>
-                      <span style={{
-                        width: '6px',
-                        height: '6px',
-                        borderRadius: '50%',
-                        background: socket ? '#10B981' : '#EF4444'
-                      }}></span>
-                      {socket ? 'Socket.io Live' : 'Connecting...'}
-                    </span>
+                    <p className="donor-card-sub">
+                      Broadcast an emergency requisition via real-time Multilevel Priority Queue.
+                    </p>
                   </div>
-                  <p className="donor-card-sub">
-                    Broadcast an emergency requisition via real-time Multilevel Priority Queue.
-                  </p>
-                </div>
 
                 <form onSubmit={handleSubmit} className="donor-fields-stack">
                   <div className="donor-form-columns">
