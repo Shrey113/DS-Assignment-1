@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import PortalHeader from '../components/PortalHeader';
-import { AlertCircle, MapPin, CheckCircle2, Sparkles, Hospital, PhoneCall, Phone, Droplet, Plus } from 'lucide-react';
+import {
+  AlertCircle,
+  MapPin,
+  CheckCircle2,
+  Sparkles,
+  Hospital,
+  PhoneCall,
+  Phone,
+  Droplet,
+  Plus
+} from 'lucide-react';
 import GUJARAT_CITIES from '../constants/gujaratCities';
 import { getRandomRequesterData } from '../utils/fakeData';
 import {
@@ -11,7 +21,8 @@ import {
   validateBloodGroup,
   validateUnits
 } from '../utils/validation';
-import LocationPickerModal from '../components/LocationPickerModal';
+import RequesterLocationMapPicker from '../components/RequesterLocationMapPicker';
+import '../styles/requester-map.css';
 
 const BLOOD_GROUPS = ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'];
 
@@ -59,8 +70,8 @@ export default function RequesterPage() {
   const [urgency, setUrgency] = useState('CRITICAL');
   const [latitude, setLatitude] = useState(23.0225);
   const [longitude, setLongitude] = useState(72.5714);
-  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [hasPickedLocation, setHasPickedLocation] = useState(false);
+  const [isMapActive, setIsMapActive] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -177,7 +188,7 @@ export default function RequesterPage() {
       <main className="donor-split-grid">
 
         <div className="donor-form-side">
-          <div className="donor-form-card">
+          <div className="donor-form-card requester-card-slider-box">
             {dispatchResult ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
@@ -441,9 +452,9 @@ export default function RequesterPage() {
 
               </div>
             ) : (
-              <>
-                
-                <div className="donor-card-top">
+              <div className={`requester-slider-track ${isMapActive ? 'slide-to-map' : ''}`}>
+                <div className="requester-slide-pane requester-form-pane">
+                  <div className="donor-card-top">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h2 className="donor-card-heading">
                       Request blood<span className="coral-dot">.</span>
@@ -588,7 +599,7 @@ export default function RequesterPage() {
                         <label className="donor-field-label">Hospital / Incident Location (GPS)</label>
                         <button
                           type="button"
-                          onClick={() => setIsMapModalOpen(true)}
+                          onClick={() => setIsMapActive(true)}
                           className={`location-picker-trigger-btn ${hasPickedLocation ? 'has-location' : ''}`}
                         >
                           <span className="location-trigger-left">
@@ -701,37 +712,39 @@ export default function RequesterPage() {
                     </div>
                   )}
                 </form>
-              </>
-            )}
-          </div>
+              </div>
+
+              <div className="requester-slide-pane requester-map-pane">
+                <RequesterLocationMapPicker
+                  isActive={isMapActive}
+                  city={city}
+                  latitude={latitude}
+                  longitude={longitude}
+                  onConfirm={({ latitude: newLat, longitude: newLng, city: newCity }) => {
+                    setLatitude(newLat);
+                    setLongitude(newLng);
+                    if (newCity) setCity(newCity);
+                    setHasPickedLocation(true);
+                    setIsMapActive(false);
+                  }}
+                  onCancel={() => setIsMapActive(false)}
+                />
+              </div>
+            </div>
+          )}
         </div>
+      </div>
 
-        <div className="donor-art-side">
-          <div className="donor-art-glow-bg"></div>
-          <img
-            src="/illustrations/requester/requester_portal_art.png"
-            alt="Voluntary blood requisition coordination"
-            className="donor-art-img"
-          />
-        </div>
+      <div className="donor-art-side">
+        <div className="donor-art-glow-bg"></div>
+        <img
+          src="/illustrations/requester/requester_portal_art.png"
+          alt="Voluntary blood requisition coordination"
+          className="donor-art-img"
+        />
+      </div>
 
-      </main>
-
-      <LocationPickerModal
-        isOpen={isMapModalOpen}
-        initialCity={city}
-        initialLatitude={latitude}
-        initialLongitude={longitude}
-        onConfirm={({ latitude: newLat, longitude: newLng, city: newCity }) => {
-          setLatitude(newLat);
-          setLongitude(newLng);
-          if (newCity) {
-            setCity(newCity);
-          }
-          setHasPickedLocation(true);
-        }}
-        onClose={() => setIsMapModalOpen(false)}
-      />
+    </main>
 
       <div className="donor-bottom-waves" aria-hidden="true">
         <svg viewBox="0 0 1440 70" fill="none" preserveAspectRatio="none">
