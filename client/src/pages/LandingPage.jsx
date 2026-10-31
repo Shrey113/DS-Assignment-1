@@ -189,7 +189,7 @@ export default function App() {
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroVariantIndex((prev) => (prev + 1) % HERO_VARIANTS.length);
-    }, 10000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [heroVariantIndex]);
 
