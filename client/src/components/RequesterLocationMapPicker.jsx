@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, Navigation, RotateCcw, Check, MapPin } from 'lucide-react';
+import { ChevronLeft, Navigation, RotateCcw, Check, MapPin } from 'lucide-react';
 import gujaratGeoJson from '../assets/gujarat_districts_34.json';
 import '../styles/requester-map.css';
 
@@ -295,9 +295,9 @@ export default function RequesterLocationMapPicker({
             onClick={onCancel}
             className="location-pane-back-btn"
             title="Back to request form"
+            aria-label="Back to request form"
           >
-            <ArrowLeft size={15} />
-            <span>Back to Form</span>
+            <ChevronLeft size={18} strokeWidth={2.4} />
           </button>
           <div className="location-pane-title-group">
             <h3 className="location-pane-title">Pinpoint Hospital Location</h3>
@@ -306,11 +306,19 @@ export default function RequesterLocationMapPicker({
             </p>
           </div>
         </div>
+      </div>
 
-        <div className="location-pane-header-actions">
+      <div className="location-pane-map-wrapper">
+        <div ref={mapContainerRef} className="location-pane-map-canvas" />
+
+        <div className="location-pane-floating-controls">
           <button
             type="button"
-            onClick={handleCurrentLocation}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCurrentLocation();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
             disabled={isLocating}
             className="location-pane-action-btn current-loc"
             title="Snap to current location"
@@ -320,17 +328,19 @@ export default function RequesterLocationMapPicker({
           </button>
           <button
             type="button"
-            onClick={handleResetGujarat}
-            className="location-pane-action-btn reset-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleResetGujarat();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="location-pane-action-btn reset-btn icon-only"
             title="Recenter full Gujarat"
+            aria-label="Recenter full Gujarat"
           >
-            <RotateCcw size={12} />
-            <span>Gujarat</span>
+            <RotateCcw size={14} strokeWidth={2.2} />
           </button>
         </div>
       </div>
-
-      <div ref={mapContainerRef} className="location-pane-map-canvas" />
 
       <div className="location-pane-footer">
         <div className="location-pane-coords-pill">
