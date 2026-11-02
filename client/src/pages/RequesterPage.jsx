@@ -517,38 +517,6 @@ export default function RequesterPage() {
                       </div>
 
                       <div className="donor-field-group">
-                        <div className="donor-label-between">
-                          <label className="donor-field-label">Units Needed</label>
-                          <span className="donor-field-hint">
-                            {units ? (units === 1 ? '1 Unit (350ml)' : `${units} Units (700ml+)`) : 'Select units'}
-                          </span>
-                        </div>
-                        <div className="requester-units-grid">
-                          {UNIT_OPTIONS.map((u) => (
-                            <button
-                              key={u}
-                              type="button"
-                              className={`requester-unit-chip ${units === u ? 'active' : ''}`}
-                              onClick={() => {
-                                setUnits(u);
-                                if (errors.units) setErrors((prev) => ({ ...prev, units: '' }));
-                              }}
-                            >
-                              {u} {u === 5 ? '+' : ''}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="field-error-slot">
-                          {errors.units && (
-                            <span className="field-hint-error">
-                              <AlertCircle size={12} />
-                              <span>{errors.units}</span>
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="donor-field-group">
                         <label className="donor-field-label">Hospital / Incident Location (GPS)</label>
                         <button
                           type="button"
@@ -613,6 +581,38 @@ export default function RequesterPage() {
                           <strong className="requester-compat-pill">
                             {bloodGroup && compatibleDonors.length > 0 ? compatibleDonors.join(', ') : 'Select blood group'}
                           </strong>
+                        </div>
+                      </div>
+
+                      <div className="donor-field-group">
+                        <div className="donor-label-between">
+                          <label className="donor-field-label">Units Needed</label>
+                          <span className="donor-field-hint">
+                            {units ? (units === 1 ? '1 Unit (350ml)' : `${units} Units (700ml+)`) : 'Select units'}
+                          </span>
+                        </div>
+                        <div className="requester-units-grid">
+                          {UNIT_OPTIONS.map((u) => (
+                            <button
+                              key={u}
+                              type="button"
+                              className={`requester-unit-chip ${units === u ? 'active' : ''}`}
+                              onClick={() => {
+                                setUnits(u);
+                                if (errors.units) setErrors((prev) => ({ ...prev, units: '' }));
+                              }}
+                            >
+                              {u} {u === 5 ? '+' : ''}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="field-error-slot">
+                          {errors.units && (
+                            <span className="field-hint-error">
+                              <AlertCircle size={12} />
+                              <span>{errors.units}</span>
+                            </span>
+                          )}
                         </div>
                       </div>
 
