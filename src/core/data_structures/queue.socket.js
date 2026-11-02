@@ -1,5 +1,5 @@
 import { getPool } from '../../config/db.js';
-import { triageMLQ } from './MultilevelQueue.js';
+import { requestQueue } from './Queue.js';
 import { donorManager } from './3D_Array_Donor.js';
 
 function calculateDistanceKm(lat1, lon1, lat2, lon2) {
@@ -13,12 +13,6 @@ const STOCK_COLS = {
   'A-': 'stock_a_neg', 'A+': 'stock_a_pos',
   'B-': 'stock_b_neg', 'B+': 'stock_b_pos',
   'AB-': 'stock_ab_neg', 'AB+': 'stock_ab_pos'
-};
-
-const TRIAGE_TITLES = {
-  'CRITICAL': 'Tier 1: Critical Emergency (Immediate < 1h)',
-  'URGENT': 'Tier 2: Urgent Requirement (Within 4 Hours)',
-  'SCHEDULED': 'Tier 3: Scheduled / Elective (Within 24 Hours)'
 };
 
 async function find_nearest_blood_bank(request) {
@@ -58,13 +52,11 @@ export function setup_queue_socket(io) {
     console.log(`[Socket.io] Client connected: ${socket.id}`);
 
     socket.on('send_request', async (payload) => {
-      const priority = payload.priority;
-      const tierPrefix = priority.substring(0, 4).toUpperCase();
-      const tokenId = `TOKEN-${tierPrefix}-${Date.now().toString().slice(-4)}-${Math.floor(100 + Math.random() * 900)}`;
+      const tokenId = `TOKEN-${Date.now().toString().slice(-4)}-${Math.floor(100 + Math.random() * 900)}`;
 
       console.log(`[Socket.io] Ingestion: ${payload.patientName} -> Assigned Token: ${tokenId}`);
 
-      triageMLQ.add_queue({
+      requestQueue.add_queue({
         ...payload,
         tokenId,
         socketId: socket.id
@@ -72,31 +64,29 @@ export function setup_queue_socket(io) {
 
       io.to(socket.id).emit('send_queue_token_id', {
         tokenId,
-        priority,
         patientName: payload.patientName,
-        message: 'Requisition queued successfully. Awaiting priority dispatch.'
+        message: 'Requisition queued successfully. Awaiting dispatch.'
       });
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      while (!triageMLQ.isEmpty()) {
-        const { request, triage } = triageMLQ.dequeue();
+      while (!requestQueue.isEmpty()) {
+        const request = requestQueue.dequeue();
+        if (!request) break;
 
         const matchedDepot = await find_nearest_blood_bank(request);
         const topDonors = donorManager.get_best_3_option(request.city, request.bloodGroup);
 
         const pool = getPool();
         const [insertResult] = await pool.query(`
-          INSERT INTO requests (patient_name, hospital, city, blood_group, units, urgency, is_immediate, latitude, longitude, status)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'MATCHED');
+          INSERT INTO requests (patient_name, hospital, city, blood_group, units, latitude, longitude, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, 'MATCHED');
         `, [
           request.patientName,
           request.hospital,
           request.city,
           request.bloodGroup,
           Number(request.units) || 1,
-          request.priority,
-          request.priority === 'CRITICAL' ? 1 : 0,
           Number(request.latitude),
           Number(request.longitude)
         ]);
@@ -106,11 +96,6 @@ export function setup_queue_socket(io) {
           success: true,
           message: 'Emergency blood requisition dispatched successfully',
           requestId: insertResult.insertId,
-          triage: {
-            tier: triage.tier,
-            tierId: triage.tierId,
-            tierTitle: TRIAGE_TITLES[triage.tierId] || 'Tier 1: Emergency'
-          },
           matchedDepot,
           topDonors
         };

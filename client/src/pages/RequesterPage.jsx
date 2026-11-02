@@ -37,27 +37,6 @@ const COMPATIBILITY_MAP = {
   'AB+': ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+']
 };
 
-const URGENCY_LEVELS = [
-  {
-    id: 'CRITICAL',
-    title: 'Critical Emergency',
-    badge: 'Immediate (< 1h)',
-    desc: 'Life-threatening trauma or emergency surgery'
-  },
-  {
-    id: 'URGENT',
-    title: 'Urgent Requirement',
-    badge: 'Within 4 Hours',
-    desc: 'Active inpatient deficit, ICU resuscitation or oncology'
-  },
-  {
-    id: 'SCHEDULED',
-    title: 'Scheduled / Elective',
-    badge: 'Within 24 Hours',
-    desc: 'Planned surgical procedure or replenishment reserve'
-  }
-];
-
 const UNIT_OPTIONS = [1, 2, 3, 4, 5];
 
 export default function RequesterPage() {
@@ -67,7 +46,6 @@ export default function RequesterPage() {
   const [units, setUnits] = useState(null);
 
   const [bloodGroup, setBloodGroup] = useState('');
-  const [urgency, setUrgency] = useState('CRITICAL');
   const [latitude, setLatitude] = useState(23.0225);
   const [longitude, setLongitude] = useState(72.5714);
   const [hasPickedLocation, setHasPickedLocation] = useState(false);
@@ -120,7 +98,6 @@ export default function RequesterPage() {
     setCity(data.city);
     setBloodGroup(data.bloodGroup);
     setUnits(data.units);
-    setUrgency(data.urgency);
     setLatitude(data.latitude);
     setLongitude(data.longitude);
     setHasPickedLocation(true);
@@ -171,9 +148,6 @@ export default function RequesterPage() {
       city,
       bloodGroup,
       units: Number(units) || 1,
-      priority: urgency || 'CRITICAL',
-      urgency: urgency || 'CRITICAL',
-      isImmediate: urgency === 'CRITICAL',
       latitude: Number(latitude) || 23.0225,
       longitude: Number(longitude) || 72.5714
     });
@@ -459,7 +433,7 @@ export default function RequesterPage() {
                       Request blood<span className="coral-dot">.</span>
                     </h2>
                     <p className="donor-card-sub">
-                      Broadcast an emergency requisition via real-time Multilevel Priority Queue.
+                      Broadcast an emergency requisition via real-time Queue.
                     </p>
                   </div>
 
@@ -639,36 +613,6 @@ export default function RequesterPage() {
                           <strong className="requester-compat-pill">
                             {bloodGroup && compatibleDonors.length > 0 ? compatibleDonors.join(', ') : 'Select blood group'}
                           </strong>
-                        </div>
-                      </div>
-
-                      <div className="donor-field-group">
-                        <label className="donor-field-label">Emergency Priority Triage (24-Hour)</label>
-                        <div className="requester-urgency-stack">
-                          {URGENCY_LEVELS.map((lvl) => {
-                            const isSelected = urgency === lvl.id;
-                            return (
-                              <button
-                                key={lvl.id}
-                                type="button"
-                                className={`requester-priority-card ${lvl.id.toLowerCase()} ${isSelected ? 'active' : ''}`}
-                                onClick={() => setUrgency(lvl.id)}
-                              >
-                                <div className="priority-card-content">
-                                  <span className="priority-radio-circle">
-                                    <span className="priority-radio-inner"></span>
-                                  </span>
-                                  <div className="priority-card-body">
-                                    <div className="priority-card-title-row">
-                                      <span className="priority-card-title">{lvl.title}</span>
-                                      <span className="priority-time-badge">{lvl.badge}</span>
-                                    </div>
-                                    <p className="priority-card-desc">{lvl.desc}</p>
-                                  </div>
-                                </div>
-                              </button>
-                            );
-                          })}
                         </div>
                       </div>
 
