@@ -43,7 +43,9 @@ async function find_nearest_blood_bank(request) {
     availableUnits: best.availableUnits,
     totalUnits: best.bank.total_units,
     bloodGroup: request.bloodGroup,
-    matchScore: best.score
+    matchScore: best.score,
+    latitude: Number(best.bank.latitude) || 23.0225,
+    longitude: Number(best.bank.longitude) || 72.5714
   };
 }
 
@@ -91,13 +93,25 @@ export function setup_queue_socket(io) {
           Number(request.longitude)
         ]);
 
+        const distKm = calculateDistanceKm(
+          Number(request.latitude) || 23.0225,
+          Number(request.longitude) || 72.5714,
+          Number(matchedDepot.latitude) || 23.0225,
+          Number(matchedDepot.longitude) || 72.5714
+        );
+        const durationMins = Math.max(3, Math.round((distKm / 38) * 60));
+
         const resultPayload = {
           tokenId: request.tokenId,
           success: true,
           message: 'Emergency blood requisition dispatched successfully',
           requestId: insertResult.insertId,
           matchedDepot,
-          topDonors
+          topDonors,
+          route: {
+            distanceKm: distKm,
+            durationMins
+          }
         };
 
         io.to(request.socketId).emit('send_result', resultPayload);

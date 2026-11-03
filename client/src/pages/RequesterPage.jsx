@@ -22,6 +22,7 @@ import {
   validateUnits
 } from '../utils/validation';
 import RequesterLocationMapPicker from '../components/RequesterLocationMapPicker';
+import RequesterTransitRouteMap from '../components/RequesterTransitRouteMap';
 import '../styles/requester-map.css';
 
 const BLOOD_GROUPS = ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'];
@@ -659,12 +660,32 @@ export default function RequesterPage() {
       </div>
 
       <div className="donor-art-side">
-        <div className="donor-art-glow-bg"></div>
-        <img
-          src="/illustrations/requester/requester_portal_art.png"
-          alt="Voluntary blood requisition coordination"
-          className="donor-art-img"
-        />
+        {dispatchResult ? (
+          <div style={{ width: '100%', height: '100%', minHeight: '605px', display: 'flex' }}>
+            <RequesterTransitRouteMap
+              startCoords={{
+                lat: submittedCoords?.lat || latitude,
+                lng: submittedCoords?.lng || longitude,
+                name: hospital || 'Hospital Incident Site'
+              }}
+              endCoords={{
+                lat: dispatchResult.matchedDepot?.latitude,
+                lng: dispatchResult.matchedDepot?.longitude,
+                name: dispatchResult.matchedDepot?.name || 'Matched Blood Depot'
+              }}
+              route={dispatchResult.route}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="donor-art-glow-bg"></div>
+            <img
+              src="/illustrations/requester/requester_portal_art.png"
+              alt="Voluntary blood requisition coordination"
+              className="donor-art-img"
+            />
+          </>
+        )}
       </div>
 
     </main>
