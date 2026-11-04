@@ -17,4 +17,24 @@ router.post('/add-donors', async (req, res, next) => {
   }
 });
 
+router.get('/best-donors', (req, res) => {
+  const { city, bloodGroup } = req.query;
+  if (!city || !bloodGroup) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide both city and bloodGroup query parameters.'
+    });
+  }
+
+  const bestDonors = donorManager.get_best_3_option(city, bloodGroup);
+  return res.status(200).json({
+    success: true,
+    dataStructure: 'Binary Max-Heap Priority Queue',
+    city,
+    requestedBloodGroup: bloodGroup,
+    count: bestDonors.length,
+    donors: bestDonors
+  });
+});
+
 export default router;

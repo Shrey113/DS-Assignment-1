@@ -1,4 +1,5 @@
 import { getPool } from '../../config/db.js';
+import { MaxHeap, COMPATIBLE_BLOOD_GROUPS, calculateDonorPriority } from './MaxHeap.js';
 
 class DonorManager {
     constructor() {
@@ -18,10 +19,12 @@ class DonorManager {
                                'id', id, 
                                'name', name, 
                                'phone', phone, 
-                               'bloodGroup', blood_group
+                               'bloodGroup', blood_group,
+                               'isFirstTime', is_first_time,
+                               'preferredSlot', preferred_slot
                            )) AS donor_list
                     FROM (
-                        SELECT id, name, phone, city, blood_group
+                        SELECT id, name, phone, city, blood_group, is_first_time, preferred_slot
                         FROM donors
                         WHERE is_active = 1
                         ORDER BY (last_donated_date IS NULL OR is_first_time = 1) DESC,
@@ -45,11 +48,44 @@ class DonorManager {
     }
 
     get_best_3_option(city, blood_group) {
-        return this.get_donors(city, blood_group).slice(0, 3).map((donor, idx) => ({
-            ...donor,
-            rank: idx + 1,
-            isPriority: idx === 0
-        }));
+        if (!city || !blood_group) return [];
+
+        const heap = new MaxHeap();
+        const cityKey = Object.keys(this.donors).find(c => c.toLowerCase() === city.toLowerCase()) || city;
+        const cityBloodGroups = this.donors[cityKey] || {};
+
+        // Compatible groups (e.g., A+ can receive from A+, A-, O+, O-)
+        const allowedGroups = COMPATIBLE_BLOOD_GROUPS[blood_group] || [blood_group];
+
+        // Push candidate donors into Max-Heap with calculated priority
+        for (const group of allowedGroups) {
+            const list = cityBloodGroups[group] || [];
+            for (const donor of list) {
+                const priority = calculateDonorPriority(donor, blood_group);
+                if (priority > 0) {
+                    heap.insert({
+                        ...donor,
+                        priority,
+                        matchType: donor.bloodGroup === blood_group ? 'EXACT' : 'COMPATIBLE'
+                    });
+                }
+            }
+        }
+
+        // Extract top 3 using extractMax() - O(log N) per extraction
+        const topDonors = [];
+        let rank = 1;
+        while (!heap.isEmpty() && topDonors.length < 3) {
+            const best = heap.extractMax();
+            topDonors.push({
+                ...best,
+                rank,
+                isPriority: rank === 1
+            });
+            rank++;
+        }
+
+        return topDonors;
     }
 
     async get_city_donor_3D_array(city) {
@@ -64,10 +100,12 @@ class DonorManager {
                            'id', id,
                            'name', name,
                            'phone', phone,
-                           'bloodGroup', blood_group
+                           'bloodGroup', blood_group,
+                           'isFirstTime', is_first_time,
+                           'preferredSlot', preferred_slot
                        )) AS donor_list
                 FROM (
-                    SELECT id, name, phone, city, blood_group
+                    SELECT id, name, phone, city, blood_group, is_first_time, preferred_slot
                     FROM donors
                     WHERE is_active = 1 AND LOWER(city) = LOWER(?)
                     ORDER BY (last_donated_date IS NULL OR is_first_time = 1) DESC,
