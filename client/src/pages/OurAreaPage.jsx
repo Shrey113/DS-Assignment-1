@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import gujaratGeoJson from '../assets/gujarat_districts_34.json';
 import '../styles/our-area.css';
+import citySearchHash from '../utils/citySearchHash.js';
 
 const BLOOD_GROUPS = ['ALL', 'O+', 'A+', 'B+', 'AB+', 'O-', 'A-', 'B-', 'AB-'];
 
@@ -228,10 +229,20 @@ export default function OurAreaPage() {
     return () => { isMounted = false; };
   }, []);
 
-  // Filter suggestions based on searchQuery
+  // Filter suggestions instantly using Client-Side City Search Hash Table
   const filteredSuggestions = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase().trim();
+
+    // Instant O(1) Prefix Search via Custom Hash Table
+    const hashMatchedCities = citySearchHash.search(q, 8);
+    if (hashMatchedCities.length > 0) {
+      return hashMatchedCities.map((cityName) => {
+        const found = SEARCHABLE_ENTRIES.find((item) => item.label.toLowerCase() === cityName.toLowerCase());
+        return found || { label: cityName, district: cityName, type: 'City' };
+      });
+    }
+
     return SEARCHABLE_ENTRIES.filter(
       (item) => item.label.toLowerCase().includes(q) || item.district.toLowerCase().includes(q)
     ).slice(0, 8);

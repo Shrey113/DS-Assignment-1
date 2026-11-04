@@ -10,6 +10,7 @@ import {
   PhoneCall
 } from 'lucide-react';
 import '../styles/blood-banks.css';
+import citySearchHash from '../utils/citySearchHash.js';
 
 
 const REGION_MAP = {
@@ -45,8 +46,14 @@ export default function BloodBanksDirectoryPage() {
 
   const filteredCities = useMemo(() => {
     if (!data?.cities) return [];
+    const trimmed = searchTerm.toLowerCase().trim();
+
+    // Fast O(1) Hash Table lookup for matching cities
+    const hashMatches = trimmed ? citySearchHash.search(trimmed, 50).map((c) => c.toLowerCase()) : [];
+
     return data.cities.filter((c) => {
-      const matchesSearch = c.city.toLowerCase().includes(searchTerm.toLowerCase().trim());
+      const cityLower = c.city.toLowerCase();
+      const matchesSearch = !trimmed || hashMatches.includes(cityLower) || cityLower.includes(trimmed);
       if (!matchesSearch) return false;
 
       if (selectedRegion === 'ALL') return true;

@@ -1432,3 +1432,59 @@ select.donor-field-select option[value=""] {
   background: #EF4E4E;
   color: #FFFFFF;
 }
+
+/* ── City Autocomplete Dropdown ── */
+.city-autocomplete-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.city-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 6px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.city-autocomplete-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.city-autocomplete-item:hover,
+.city-autocomplete-item.highlighted {
+  background: #F3F4F6;
+}
+
+.city-autocomplete-item.selected {
+  background: #FEF2F2;
+}
+
+.city-autocomplete-empty {
+  padding: 12px 10px;
+  font-size: 0.85rem;
+  color: #9CA3AF;
+  text-align: center;
+  font-family: var(--font-sans);
+}

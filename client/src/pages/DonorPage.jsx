@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PortalHeader from '../components/PortalHeader';
 import { AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
 import GUJARAT_CITIES from '../constants/gujaratCities';
+import CityAutocompleteInput from '../components/CityAutocompleteInput';
 import { getRandomDonorData } from '../utils/fakeData';
 import {
   validateFullName,
@@ -303,23 +304,17 @@ export default function DonorPage() {
                   </div>
 
                   <div className="donor-field-group">
-                    <label className="donor-field-label">City Depot</label>
-                    <select
+                    <label className="donor-field-label">City Depot / Region</label>
+                    <CityAutocompleteInput
                       value={city}
-                      onChange={(e) => {
-                        setCity(e.target.value);
-                        if (errors.city) setErrors((prev) => ({ ...prev, city: validateCity(e.target.value) }));
+                      onChange={(val) => {
+                        setCity(val);
+                        if (errors.city) setErrors((prev) => ({ ...prev, city: validateCity(val) }));
                       }}
                       onBlur={() => handleBlur('city')}
-                      className={`donor-field-input donor-field-select ${errors.city ? 'has-error' : ''}`}
-                    >
-                      <option value="">Select City (e.g. Ahmedabad)</option>
-                      {GUJARAT_CITIES.map((cityName) => (
-                        <option key={cityName} value={cityName}>
-                          {cityName}
-                        </option>
-                      ))}
-                    </select>
+                      error={errors.city}
+                      placeholder="Type or select city (e.g. Ahmedabad, Surat)..."
+                    />
                     <div className="field-error-slot">
                       {errors.city && (
                         <span className="field-hint-error">
