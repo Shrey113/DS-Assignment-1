@@ -85,6 +85,38 @@ export class MaxHeap {
     return max;
   }
 
+  // Clone heap without destroying the original heap
+  clone() {
+    const copy = new MaxHeap();
+    copy.heap = this.heap.map(item => ({ ...item }));
+    return copy;
+  }
+
+  // Non-destructive: Get top K items in priority order
+  getTopK(k = 3) {
+    const copy = this.clone();
+    const result = [];
+    while (!copy.isEmpty() && result.length < k) {
+      result.push(copy.extractMax());
+    }
+    return result;
+  }
+
+  // Non-destructive: Get all items sorted by priority descending
+  getAllSorted() {
+    const copy = this.clone();
+    const result = [];
+    while (!copy.isEmpty()) {
+      result.push(copy.extractMax());
+    }
+    return result;
+  }
+
+  // Direct array snapshot
+  toArray() {
+    return [...this.heap];
+  }
+
   bubbleUp(index) {
     while (index > 0) {
       const parentIndex = Math.floor((index - 1) / 2);
