@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Navigation, Clock, Activity, MapPin } from 'lucide-react';
+import { Navigation, Clock, Activity, MapPin, ChevronLeft } from 'lucide-react';
 
 const createPin = (color, label) => L.divIcon({
   className: '',
@@ -27,7 +27,7 @@ const createPin = (color, label) => L.divIcon({
   iconAnchor: [16, 16]
 });
 
-export default function RequesterTransitRouteMap({ startCoords, endCoords, route }) {
+export default function RequesterTransitRouteMap({ isActive, startCoords, endCoords, route, onBack }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
@@ -117,8 +117,15 @@ export default function RequesterTransitRouteMap({ startCoords, endCoords, route
     loadRoute();
     mapInstanceRef.current = map;
 
+    const resizeTimer = setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 200);
+
     return () => {
       isMounted = false;
+      clearTimeout(resizeTimer);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
@@ -126,21 +133,32 @@ export default function RequesterTransitRouteMap({ startCoords, endCoords, route
     };
   }, [startLat, startLng, endLat, endLng]);
 
+  useEffect(() => {
+    if (isActive) {
+      const timer = setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 420);
+      return () => clearTimeout(timer);
+    }
+  }, [isActive]);
+
   return (
     <div style={{
       width: '100%',
       height: '100%',
-      minHeight: '605px',
+      minHeight: '550px',
       background: '#FFFFFF',
-      borderRadius: '20px',
+      borderRadius: '16px',
       border: '1px solid #E2E8F0',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
-      boxShadow: '0 16px 42px rgba(28, 32, 29, 0.08)'
+      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)'
     }}>
       <div style={{
-        padding: '16px 20px',
+        padding: '14px 18px',
         background: '#FFFFFF',
         borderBottom: '1px solid #E2E8F0',
         display: 'flex',
@@ -150,6 +168,30 @@ export default function RequesterTransitRouteMap({ startCoords, endCoords, route
         gap: '10px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: '#F1F5F9',
+                border: '1px solid #CBD5E1',
+                color: '#334155',
+                cursor: 'pointer',
+                marginRight: '2px',
+                transition: 'all 0.15s ease'
+              }}
+              title="Back to Depot Details"
+              aria-label="Back to Depot Details"
+            >
+              <ChevronLeft size={18} strokeWidth={2.4} />
+            </button>
+          )}
           <div style={{
             width: '32px',
             height: '32px',
@@ -173,7 +215,7 @@ export default function RequesterTransitRouteMap({ startCoords, endCoords, route
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -208,7 +250,41 @@ export default function RequesterTransitRouteMap({ startCoords, endCoords, route
         </div>
       </div>
 
-      <div ref={mapContainerRef} style={{ width: '100%', flex: 1, minHeight: '520px' }} />
+      <div ref={mapContainerRef} style={{ width: '100%', flex: 1, minHeight: '430px' }} />
+
+      {onBack && (
+        <div style={{
+          padding: '10px 16px',
+          background: '#F8FAFC',
+          borderTop: '1px solid #E2E8F0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}>
+          <span style={{ fontSize: '0.74rem', color: '#64748B' }}>
+            Hospital (Point A) ↔ Matched Blood Depot (Point B)
+          </span>
+          <button
+            type="button"
+            onClick={onBack}
+            style={{
+              padding: '6px 14px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              color: '#334155',
+              background: '#FFFFFF',
+              border: '1px solid #CBD5E1',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              transition: 'background 0.15s ease'
+            }}
+          >
+            Back to Depot Details
+          </button>
+        </div>
+      )}
     </div>
   );
 }

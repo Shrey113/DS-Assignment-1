@@ -688,3 +688,47 @@
 .light-district-tooltip:before {
   border-top-color: rgba(15, 23, 42, 0.95) !important;
 }
+
+.depot-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-sizing: border-box;
+}
+
+.depot-action-btn.emergency {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1.5px solid #FECACA;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.08);
+}
+
+.depot-action-btn.emergency:hover {
+  background: #FEE2E2;
+  border-color: #F87171;
+  color: #B91C1C;
+  transform: translateY(-1px);
+}
+
+.depot-action-btn.show-map {
+  background: #EFF6FF;
+  color: #2563EB;
+  border: 1.5px solid #BFDBFE;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
+}
+
+.depot-action-btn.show-map:hover {
+  background: #DBEAFE;
+  border-color: #93C5FD;
+  color: #1D4ED8;
+  transform: translateY(-1px);
+}

@@ -10,7 +10,8 @@ import {
   PhoneCall,
   Phone,
   Droplet,
-  Plus
+  Plus,
+  ChevronLeft
 } from 'lucide-react';
 import GUJARAT_CITIES from '../constants/gujaratCities';
 import CityAutocompleteInput from '../components/CityAutocompleteInput';
@@ -57,6 +58,7 @@ export default function RequesterPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedCoords, setSubmittedCoords] = useState(null);
   const [dispatchResult, setDispatchResult] = useState(null);
+  const [isTransitMapActive, setIsTransitMapActive] = useState(false);
   const [socket, setSocket] = useState(null);
   const [activeToken, setActiveToken] = useState(null);
   const activeTokenRef = useRef(null);
@@ -166,7 +168,8 @@ export default function RequesterPage() {
         <div className="donor-form-side">
           <div className="donor-form-card requester-card-slider-box">
             {dispatchResult ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className={`requester-slider-track ${isTransitMapActive ? 'slide-to-map' : ''}`}>
+                <div className="requester-slide-pane requester-form-pane" style={{ gap: '14px', justifyContent: 'flex-start' }}>
 
                 <div style={{
                   background: '#FFFFFF',
@@ -254,48 +257,22 @@ export default function RequesterPage() {
                     {dispatchResult.matchedDepot?.emergencyPhone && (
                       <a
                         href={`tel:${dispatchResult.matchedDepot.emergencyPhone.replace(/\s+/g, '')}`}
-                        style={{
-                          flex: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          padding: '10px 14px',
-                          background: '#EF4444',
-                          color: '#FFFFFF',
-                          borderRadius: '8px',
-                          textDecoration: 'none',
-                          fontWeight: 700,
-                          fontSize: '0.82rem'
-                        }}
+                        className="depot-action-btn emergency"
+                        title="Call emergency hotline"
                       >
-                        <PhoneCall size={14} strokeWidth={2.2} />
+                        <PhoneCall size={14} strokeWidth={2.4} />
                         <span>Emergency: {dispatchResult.matchedDepot.emergencyPhone}</span>
                       </a>
                     )}
-                    {dispatchResult.matchedDepot?.contactPhone && (
-                      <a
-                        href={`tel:${dispatchResult.matchedDepot.contactPhone.replace(/\s+/g, '')}`}
-                        style={{
-                          flex: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          padding: '10px 14px',
-                          background: '#F1F5F9',
-                          color: '#334155',
-                          border: '1px solid #CBD5E1',
-                          borderRadius: '8px',
-                          textDecoration: 'none',
-                          fontWeight: 600,
-                          fontSize: '0.82rem'
-                        }}
-                      >
-                        <Phone size={14} strokeWidth={2} color="#475569" />
-                        <span>Landline: {dispatchResult.matchedDepot.contactPhone}</span>
-                      </a>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsTransitMapActive(true)}
+                      className="depot-action-btn show-map"
+                      title="Show route map to depot"
+                    >
+                      <MapPin size={14} strokeWidth={2.4} />
+                      <span>Show Map</span>
+                    </button>
                   </div>
                 </div>
 
@@ -400,12 +377,13 @@ export default function RequesterPage() {
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'center', paddingTop: '4px' }}>
+                <div style={{ textAlign: 'center', paddingTop: '2px' }}>
                   <button
                     type="button"
                     onClick={() => {
                       setDispatchResult(null);
                       setIsSubmitted(false);
+                      setIsTransitMapActive(false);
                     }}
                     style={{
                       display: 'inline-flex',
@@ -427,7 +405,26 @@ export default function RequesterPage() {
                 </div>
 
               </div>
-            ) : (
+
+              <div className="requester-slide-pane requester-map-pane">
+                <RequesterTransitRouteMap
+                  isActive={isTransitMapActive}
+                  startCoords={{
+                    lat: submittedCoords?.lat || latitude,
+                    lng: submittedCoords?.lng || longitude,
+                    name: hospital || 'Hospital Incident Site'
+                  }}
+                  endCoords={{
+                    lat: dispatchResult.matchedDepot?.latitude,
+                    lng: dispatchResult.matchedDepot?.longitude,
+                    name: dispatchResult.matchedDepot?.name || 'Matched Blood Depot'
+                  }}
+                  route={dispatchResult.route}
+                  onBack={() => setIsTransitMapActive(false)}
+                />
+              </div>
+            </div>
+          ) : (
               <div className={`requester-slider-track ${isMapActive ? 'slide-to-map' : ''}`}>
                 <div className="requester-slide-pane requester-form-pane">
                   <div className="donor-card-top">
@@ -655,32 +652,12 @@ export default function RequesterPage() {
       </div>
 
       <div className="donor-art-side">
-        {dispatchResult ? (
-          <div style={{ width: '100%', height: '100%', minHeight: '605px', display: 'flex' }}>
-            <RequesterTransitRouteMap
-              startCoords={{
-                lat: submittedCoords?.lat || latitude,
-                lng: submittedCoords?.lng || longitude,
-                name: hospital || 'Hospital Incident Site'
-              }}
-              endCoords={{
-                lat: dispatchResult.matchedDepot?.latitude,
-                lng: dispatchResult.matchedDepot?.longitude,
-                name: dispatchResult.matchedDepot?.name || 'Matched Blood Depot'
-              }}
-              route={dispatchResult.route}
-            />
-          </div>
-        ) : (
-          <>
-            <div className="donor-art-glow-bg"></div>
-            <img
-              src="/illustrations/requester/requester_portal_art.png"
-              alt="Voluntary blood requisition coordination"
-              className="donor-art-img"
-            />
-          </>
-        )}
+        <div className="donor-art-glow-bg"></div>
+        <img
+          src="/illustrations/requester/requester_portal_art.png"
+          alt="Voluntary blood requisition coordination"
+          className="donor-art-img"
+        />
       </div>
 
     </main>
