@@ -40,3 +40,7 @@ Thumbs.db
 # Testing coverage
 coverage/
 .nyc_output/
+
+# Python generator scripts
+generate*.py
+generate_*.py
