@@ -208,7 +208,7 @@ export default function App() {
 
   return (
     <div className="editorial-layout">
-      
+
       {toastMessage && (
         <div style={{
           position: 'fixed',
@@ -233,7 +233,7 @@ export default function App() {
       )}
 
       <section className="hero-viewport-section">
-        
+
         <nav className="editorial-nav">
           <Link to="/" className="editorial-logo">
             <img src="/bloodlink_logo.png" alt="BloodLink logo" className="editorial-logo-img" />

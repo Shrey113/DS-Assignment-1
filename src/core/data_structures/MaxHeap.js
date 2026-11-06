@@ -19,11 +19,9 @@ export function calculateDonorPriority(donor, requestedBloodGroup) {
   else if (COMPATIBLE_BLOOD_GROUPS[requestedBloodGroup]?.includes(donor.bloodGroup)) {
     priority += 60;
   } else {
-    // Incompatible blood group
     return -1;
   }
 
-  // 3. First-time donor preference
   if (donor.isFirstTime) {
     priority += 20;
   }
@@ -48,13 +46,11 @@ export class MaxHeap {
     return this.heap[0] || null;
   }
 
-  // Insert new item and bubble it up: O(log N)
   insert(item) {
     this.heap.push(item);
     this.bubbleUp(this.heap.length - 1);
   }
 
-  // Extract highest priority item (root) and bubble down: O(log N)
   extractMax() {
     if (this.isEmpty()) return null;
     if (this.heap.length === 1) return this.heap.pop();
@@ -64,15 +60,12 @@ export class MaxHeap {
     this.bubbleDown(0);
     return max;
   }
-
-  // Clone heap without destroying the original heap
   clone() {
     const copy = new MaxHeap();
     copy.heap = this.heap.map(item => ({ ...item }));
     return copy;
   }
 
-  // Non-destructive: Get top K items in priority order
   getTopK(k = 3) {
     const copy = this.clone();
     const result = [];
@@ -82,7 +75,6 @@ export class MaxHeap {
     return result;
   }
 
-  // Non-destructive: Get all items sorted by priority descending
   getAllSorted() {
     const copy = this.clone();
     const result = [];
