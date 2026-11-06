@@ -29,7 +29,7 @@ COLOR_TABLE_HEADER = RGBColor(15, 23, 42)      # Slate 900 (#0F172A)
 COLOR_TABLE_ALT = RGBColor(248, 250, 252)      # Slate 50 (#F8FAFC)
 
 FONT_NAME = "Segoe UI"
-TOTAL_SLIDES = 8
+TOTAL_SLIDES = 9
 
 
 def set_slide_background(slide):
@@ -98,34 +98,32 @@ def add_footer(slide, slide_num):
     f_line.line.fill.background()
 
     # Left metadata
-    f_box = slide.shapes.add_textbox(Inches(0.8), Inches(6.92), Inches(8.5), Inches(0.3))
-    ftf = f_box.text_frame
-    ftf.word_wrap = True
-    ftf.margin_left = ftf.margin_top = ftf.margin_right = ftf.margin_bottom = 0
-    p_foot = ftf.paragraphs[0]
-    p_foot.text = "Nirma University  •  6CS102CC26 - Data Structures  •  Innovative Assignment 1  •  Shrey Patel (26MCA042)"
-    p_foot.font.name = FONT_NAME
-    p_foot.font.size = Pt(8.5)
-    p_foot.font.color.rgb = COLOR_TEXT_LIGHT
+    f_box_l = slide.shapes.add_textbox(Inches(0.8), Inches(6.92), Inches(8.5), Inches(0.3))
+    ftf_l = f_box_l.text_frame
+    ftf_l.margin_left = ftf_l.margin_top = ftf_l.margin_right = ftf_l.margin_bottom = 0
+    p_fl = ftf_l.paragraphs[0]
+    p_fl.text = "BloodLink: Hospital Transfusion Network  |  6CS102CC26 - Data Structures  |  Nirma University"
+    p_fl.font.name = FONT_NAME
+    p_fl.font.size = Pt(8.5)
+    p_fl.font.color.rgb = COLOR_TEXT_MUTED
 
-    # Right slide counter
-    f_num = slide.shapes.add_textbox(Inches(10.533), Inches(6.92), Inches(2.0), Inches(0.3))
-    ntf = f_num.text_frame
-    ntf.word_wrap = True
-    ntf.margin_left = ntf.margin_top = ntf.margin_right = ntf.margin_bottom = 0
-    p_num = ntf.paragraphs[0]
-    p_num.alignment = PP_ALIGN.RIGHT
-    p_num.text = f"{slide_num:02d} / {TOTAL_SLIDES:02d}"
-    p_num.font.name = FONT_NAME
-    p_num.font.size = Pt(8.5)
-    p_num.font.bold = True
-    p_num.font.color.rgb = COLOR_ACCENT_RED
+    # Right page numbering
+    f_box_r = slide.shapes.add_textbox(Inches(10.0), Inches(6.92), Inches(2.533), Inches(0.3))
+    ftf_r = f_box_r.text_frame
+    ftf_r.margin_left = ftf_r.margin_top = ftf_r.margin_right = ftf_r.margin_bottom = 0
+    p_fr = ftf_r.paragraphs[0]
+    p_fr.text = f"{slide_num} of {TOTAL_SLIDES}"
+    p_fr.font.name = FONT_NAME
+    p_fr.font.size = Pt(8.5)
+    p_fr.font.bold = True
+    p_fr.font.color.rgb = COLOR_TEXT_MUTED
+    p_fr.alignment = PP_ALIGN.RIGHT
 
 
 def add_clean_screenshot(slide, img_path, left, top, width, height, caption=""):
-    full_path = os.path.join(BASE_DIR, img_path) if not os.path.isabs(img_path) else img_path
+    full_path = os.path.join(BASE_DIR, img_path)
     if os.path.exists(full_path):
-        pic = slide.shapes.add_picture(full_path, left, top, width, height)
+        pic = slide.shapes.add_picture(full_path, left, top, width=width, height=height)
         pic.line.color.rgb = COLOR_IMG_BORDER
         pic.line.width = Pt(0.75)
         if caption:
@@ -254,9 +252,9 @@ def build_slide_1(prs):
     p_subtag.space_after = Pt(10)
 
     p_t = tf_t.add_paragraph()
-    p_t.text = "BloodLink: Real-Time Blood Requisition &\nDonor Allocation System"
+    p_t.text = "BloodLink: Hospital Transfusion Network &\nAlgorithmic Blood Requisition System"
     p_t.font.name = FONT_NAME
-    p_t.font.size = Pt(34)
+    p_t.font.size = Pt(32)
     p_t.font.bold = True
     p_t.font.color.rgb = COLOR_PRIMARY_NAVY
 
@@ -343,165 +341,203 @@ def build_slide_2(prs):
     c_w = Inches(5.6)
     add_clean_column(slide, Inches(0.8), Inches(1.9), c_w, Inches(4.8),
                      "Critical Cold-Chain Challenges", [
-                         ("Strict Biological Shelf Lives:", "Platelets degrade in 5 days; Whole Blood in 35-42 days; Plasma requires cryogenic sub-zero storage."),
+                         ("Strict Biological Shelf Lives:", "Platelets degrade in 5 days; Whole Blood in 35-42 days; cryogenic sub-zero storage needed."),
                          ("Regional Supply Disparities:", "Severe supply-demand imbalances between urban hubs (Ahmedabad, Surat) and remote districts (Kutch, Dang)."),
-                         ("Fatal Queue Inversion Risk:", "Standard FIFO queues force emergency trauma hemorrhages to wait behind non-acute elective surgeries."),
-                         ("High-Latency Donor Sourcing:", "Manual donor phone calls and linear database table scanning waste critical resuscitation minutes."),
-                         ("Cold-Storage Information Silos:", "Hospitals lack real-time visibility into neighboring blood bank reserves, causing avoidable shortages.")
+                         ("High-Latency Linear Searches:", "Manual donor phone calls and linear database table scanning waste critical resuscitation minutes."),
+                         ("Cold-Storage Information Silos:", "Hospitals lack real-time visibility into neighboring blood bank reserves, causing avoidable shortages."),
+                         ("Race Conditions Under Strain:", "Simultaneous multi-casualty emergency requisitions overwhelm unbuffered dispatch systems.")
                      ], tag="Challenges")
 
     add_clean_column(slide, Inches(6.8), Inches(1.9), c_w, Inches(4.8),
                      "BloodLink Computational Solution", [
-                         ("In-Memory 3D Static Matrix:", "Pre-allocated 34x8 array providing O(1) constant-time voluntary donor registration and lookup."),
-                         ("3-Tier Multilevel Queue (MLQ):", "Enforces clinical triage tiers: CRITICAL (<1h), URGENT (<4h), and SCHEDULED (<24h) with strict FIFO."),
-                         ("Autonomous Event Worker:", "Single QueueProcessor worker running zero-polling event loop sleeping on empty queues."),
-                         ("Geodesic Proximity Matching:", "Haversine spatial ranking pairs emergency requisitions with nearest active blood depots."),
-                         ("Advanced SQL Push-Down:", "MySQL 8 JSON aggregations minimize network payloads and eliminate JavaScript CPU serialization.")
+                         ("In-Memory 3D Static Matrix:", "Pre-allocated array matrix providing O(1) constant-time voluntary donor pool access by [City][BloodGroup]."),
+                         ("Binary Max-Heap Priority Queue:", "Algorithmic multi-factor donor ranking ensuring the top-matched standby voluntary donor is found in O(1) time."),
+                         ("FIFO Triage Queue Broker:", "Socket.io real-time queue buffer assigning atomic token IDs and eliminating concurrency race conditions."),
+                         ("Separate Chaining Hash Table:", "Client-side polynomial rolling hash indexing 316+ Gujarat cities for instant O(1) autocomplete search."),
+                         ("Sub-Second Triage Dispatch:", "End-to-end requisition-to-dispatch latency under 150ms with zero database scanning overhead.")
                      ], tag="Our Solution")
 
 
 # ==============================================================================
-# SLIDE 3: SYSTEM ARCHITECTURE & 3-TIER ENGINE
+# SLIDE 3: SYSTEM ARCHITECTURE & 4-DS PIPELINE
 # ==============================================================================
 def build_slide_3(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_background(slide)
     add_openxml_transition(slide, "wipe")
-    add_header(slide, 3, "System Design & Modularity", "Decoupled Architecture: In-Memory Matrix, MLQ Triage & Event Worker",
-               "Clean 3-tier separation: pure data structures, autonomous event-driven worker, and reactive client portals.")
+    add_header(slide, 3, "System Design & Modularity", "Integrated Multi-Data-Structure Pipeline Architecture",
+               "End-to-end integration of 4 specialized data structures delivering deterministic sub-second emergency response.")
 
     col_w = Inches(3.65)
     top_pos = Inches(1.9)
 
     add_clean_column(slide, Inches(0.8), top_pos, col_w, Inches(4.8),
-                     "Tier 1: In-Memory Core", [
-                         ("Donor3DArray Matrix:", "Encapsulates 34 districts and 8 blood groups in a contiguous reference matrix."),
-                         ("MultilevelQueue Class:", "Maintains 3 distinct FIFO Queues with deterministic top-down cascading dequeue."),
-                         ("O(1) Constant-Time Bounds:", "Both matrix insertions and MLQ enqueue/dequeue execute in strictly bounded O(1) time."),
-                         ("Zero-Lock Spatial Cache:", "272 static array buckets reside permanently in heap with zero GC fragmentation.")
-                     ], tag="Data Structures")
+                     "Client & Intake Tier", [
+                         ("Separate Chaining Hash Table:", "Indexes 316+ Gujarat cities into 128 hash buckets for instant O(1) prefix search."),
+                         ("Requester Clinical Console:", "Captures patient ICU ward, blood group, units needed, and GPS coordinates with zero lag."),
+                         ("Donor Onboarding Registry:", "Direct clinical pre-screening validating donor age, weight, and 90-day whole blood interval."),
+                         ("Direct Point-to-Point Map:", "Leaflet mapping showing direct incident-to-depot spatial connection and distance.")
+                     ], tag="Client Tier")
 
     add_clean_column(slide, Inches(4.8), top_pos, col_w, Inches(4.8),
-                     "Tier 2: Event Worker", [
-                         ("Autonomous QueueProcessor:", "Singleton background loop running independently from Socket.IO ingestion."),
-                         ("Zero-Polling Wakeup:", "Sleeps on empty queue with events.once('wakeup') yielding 0.00% idle CPU load."),
-                         ("Haversine Proximity Engine:", "Ranks depots by geodesic distance and verified component inventory."),
-                         ("Targeted Result Emission:", "Dispatches results strictly to request.socketId, preventing broadcast bleed.")
-                     ], tag="Event Worker")
+                     "Triage & Queue Tier", [
+                         ("FIFO Request Queue Broker:", "Linear queue structure buffering incoming WebSocket requisitions in fair arrival order."),
+                         ("Atomic Token Generation:", "Assigns unique token (e.g. TOKEN-1603-512) for life-critical transaction traceability."),
+                         ("Concurrency & Race Guard:", "Processes simultaneous requisitions sequentially with zero request drops or duplicate allocations."),
+                         ("Targeted WebSocket Push:", "Emits dispatch results directly to requesting client socket upon triage completion.")
+                     ], tag="Triage Tier")
 
     add_clean_column(slide, Inches(8.8), top_pos, col_w, Inches(4.8),
-                     "Tier 3: Multi-Portal Client", [
-                         ("Requester Triage Portal:", "Clinical priority tier selection with interactive Leaflet GPS geolocation mapping."),
-                         ("Donor Onboarding Portal:", "Instant validation of donor weight, age, and 90-day interval with 3D array insertion."),
-                         ("Gujarat District Directory:", "District-level catalog covering cold-storage reserves across 34 administrative divisions."),
-                         ("Interactive Heatmap:", "Vector SVG district map visualizing real-time statewide blood supply distribution.")
-                     ], tag="Client Portals")
+                     "Matching & Storage Tier", [
+                         ("3D Matrix Allocator:", "Jumps in O(1) time directly to the target [City][BloodGroup] Max-Heap leaf cell."),
+                         ("Binary Max-Heap Priority:", "Extracts top 3 voluntary standby donors based on exact/compatible serology and eligibility."),
+                         ("Localized Heap Re-Gen:", "update_city_blood_group_heap() updates only the affected leaf without touching other cities."),
+                         ("MySQL 8.0 Persistence:", "Persists donor profiles and depot stocks while in-memory structures handle real-time dispatch.")
+                     ], tag="Matching Tier")
 
 
 # ==============================================================================
-# SLIDE 4: DATA STRUCTURE 1: 3D IN-MEMORY STATIC MATRIX
+# SLIDE 4: DATA STRUCTURE 1: IN-MEMORY 3D STATIC MATRIX INDEXING
 # ==============================================================================
 def build_slide_4(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_background(slide)
     add_openxml_transition(slide, "fade")
-    add_header(slide, 4, "Data Structure 1: In-Memory Matrix", "In-Memory 3D Static Matrix Indexing [City][BloodGroup][Donors]",
-               "Multidimensional orthogonal indexing enabling O(1) voluntary donor registration and serological compatibility lookup.")
+    add_header(slide, 4, "Data Structure 1 of 4: In-Memory Matrix",
+               "In-Memory 3D Static Matrix Indexing [City][BloodGroup][MaxHeap]",
+               "Multi-dimensional orthogonal matrix mapping Gujarat regional donor pools with strict O(1) constant-time direct access.")
 
-    # Left: Screenshot directly on canvas
+    # Left: Screenshot of Donor Portal
     add_clean_screenshot(slide, "screenshots/03_donor_registration_portal.png",
-                         Inches(0.8), Inches(1.9), Inches(6.8), Inches(4.6),
-                         caption="Figure 1: Voluntary Donor Registration Portal — Capturing donor demographics and serological profile for instant O(1) 3D matrix insertion.")
+                         Inches(0.8), Inches(1.9), Inches(5.6), Inches(4.6),
+                         caption="Figure 1: Voluntary Donor Registration Portal — Demographics and serological profiles populate 3D matrix cells.")
 
-    # Right: Clean typography column
-    c_w = Inches(4.6)
-    add_clean_column(slide, Inches(7.9), Inches(1.9), c_w, Inches(4.8),
-                     "Matrix Topology & Mechanical Invariants", [
-                         ("34 Fixed City Coordinates:", "Maps Gujarat districts to integer ordinals c in [0, 33] using static lookup tables."),
-                         ("8 Blood Group Indices:", "Serological ABO/Rh phenotypes mapped to indices g in [0, 7] (A+, A-, B+, B-, AB+, AB-, O+, O-)."),
-                         ("Guaranteed O(1) Insertion:", "matrix[c][g].push(donor) appends records in pure constant time without table scanning."),
-                         ("Instant Serological Slices:", "Universal recipient (AB+) and donor (O-) queries project across matrix planes in O(8) time."),
-                         ("Dense Memory Cache Locality:", "Pre-allocated 272 bucket pointers require under 2.2 KB of memory with zero pointer chasing.")
+    # Right: Technical Column
+    c_w = Inches(5.6)
+    add_clean_column(slide, Inches(6.8), Inches(1.9), c_w, Inches(4.8),
+                     "Matrix Topology & Algorithmic Invariants", [
+                         ("3-Dimensional Coordinate Mapping:", "Dimension 1: City (e.g., Ahmedabad), Dimension 2: Blood Group (e.g., O+), Dimension 3: MaxHeap instance."),
+                         ("Strict O(1) Cell Indexing:", "this.donors[city][bg] resolves in pure constant time without scanning full donor database tables."),
+                         ("Integrated Max-Heap Leaves:", "Every leaf cell in the matrix contains an active Binary Max-Heap ranking that specific donor pool."),
+                         ("Localized Heap Update Function:", "update_city_blood_group_heap(city, bg) refreshes only the targeted cell, leaving all other cities untouched."),
+                         ("Memory & Cache Locality:", "Pre-allocated matrix resides permanently in heap with zero garbage collection churn or pointer chasing.")
                      ], tag="3D Matrix Core")
 
 
 # ==============================================================================
-# SLIDE 5: DATA STRUCTURE 2: 3-TIER MULTILEVEL PRIORITY QUEUE (MLQ)
+# SLIDE 5: DATA STRUCTURE 2: BINARY MAX-HEAP PRIORITY QUEUE
 # ==============================================================================
 def build_slide_5(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_background(slide)
     add_openxml_transition(slide, "fade")
-    add_header(slide, 5, "Data Structure 2: Multilevel Queue", "Clinical Triage Prioritization & Deterministic FIFO Discipline",
-               "Enforcing strict preemptive clinical triage while guaranteeing zero starvation and intra-tier fairness.")
+    add_header(slide, 5, "Data Structure 2 of 4: Priority Queue",
+               "Binary Max-Heap Priority Queue & Multi-Factor Donor Scoring",
+               "Complete binary tree ranking voluntary donors to guarantee optimal match extraction in O(log N) time and O(1) root inspection.")
 
-    # Left: Screenshot directly on canvas
-    add_clean_screenshot(slide, "screenshots/02_requester_triage_portal.png",
-                         Inches(0.8), Inches(1.9), Inches(6.8), Inches(4.6),
-                         caption="Figure 2: Requester Triage Portal — Clinical urgency selection (CRITICAL, URGENT, SCHEDULED) with interactive GPS location mapping.")
+    c_w = Inches(5.6)
+    add_clean_column(slide, Inches(0.8), Inches(1.9), c_w, Inches(4.8),
+                     "Binary Tree Math & Priority Formulation", [
+                         ("Flat Array Binary Tree Math:", "Parent: floor((i - 1) / 2)  |  Left Child: 2i + 1  |  Right Child: 2i + 2. Contiguous array storage with zero pointer overhead."),
+                         ("Heap Invariant Property:", "For every node i > 0: heap[parent(i)].priority >= heap[i].priority. Highest priority donor is always at index 0."),
+                         ("Exact Match Priority (+100 pts):", "Assigned when donor blood group exactly matches patient requisition (e.g., A+ to A+)."),
+                         ("Compatible Serology (+60 pts):", "Assigned for safe cross-match donor groups (e.g., O- universal RBC donor to A+ recipient)."),
+                         ("First-Time & Age Bonus (+40 pts):", "First-time donors receive +20 pts; donors close to ideal age (25 yrs) receive up to +20 pts.")
+                     ], tag="Mathematical Model")
 
-    # Right: Clean typography column
-    c_w = Inches(4.6)
-    add_clean_column(slide, Inches(7.9), Inches(1.9), c_w, Inches(4.8),
-                     "Clinical Triage & Operational Discipline", [
-                         ("Tier 1: CRITICAL (< 1 Hour):", "Acute polytrauma, massive hemorrhagic shock, ruptured aneurysms. Preemptively dispatched first."),
-                         ("Tier 2: URGENT (< 4 Hours):", "Emergency surgery, active ICU transfusions, and severe hemolytic anemia with hemodynamic stability."),
-                         ("Tier 3: SCHEDULED (< 24 Hours):", "Planned elective surgeries, thalassemia routine maintenance, and orthopedics."),
-                         ("Strict Intra-Tier FIFO:", "Each priority level is governed by an independent FIFO Queue class, ensuring fair arrival sequence."),
-                         ("Zero-Starvation Cascading:", "Cascading dequeue strictly inspects Tier 1 -> Tier 2 -> Tier 3 with sub-millisecond dispatch cycles.")
-                     ], tag="Triage Logic")
+    add_clean_column(slide, Inches(6.8), Inches(1.9), c_w, Inches(4.8),
+                     "Heap Operations & Clinical Allocation", [
+                         ("O(log N) Bubble-Up Insertion:", "insert(donor) appends to end of array and bubbles up by comparing parent priorities until invariant holds."),
+                         ("O(log N) Sink-Down Max Extraction:", "extractMax() swaps root with last element, pops, and sifts down to restore complete binary tree structure."),
+                         ("O(1) Root Inspection (peek):", "Returns highest-ranking voluntary donor instantly without mutating tree state."),
+                         ("Non-Destructive Top-3 Extraction:", "getTopK(3) extracts top candidates for dispatch while preserving the persistent Max-Heap intact."),
+                         ("Unit Test Suite Verification:", "100% verified in test_max_heap.js and test_3d_max_heap.js with exact serological score validation.")
+                     ], tag="Algorithmic Operations")
 
 
 # ==============================================================================
-# SLIDE 6: ASYNCHRONOUS EVENT WORKER & SOCKET.IO ENGINE
+# SLIDE 6: DATA STRUCTURE 3: FIFO QUEUE & WEBSOCKET TRIAGE BROKER
 # ==============================================================================
 def build_slide_6(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_background(slide)
     add_openxml_transition(slide, "fade")
-    add_header(slide, 6, "Event-Driven Worker Architecture", "Autonomous Single-Worker Execution & Zero-Polling Wakeup",
-               "Decoupling socket ingestion from queue execution with atomic concurrency locks and targeted event dispatching.")
+    add_header(slide, 6, "Data Structure 3 of 4: Triage Queue",
+               "Linear FIFO Request Queue & Real-Time WebSocket Triage Broker",
+               "Asynchronous First-In-First-Out queue buffering emergency ICU requisitions with atomic token generation and zero request loss.")
 
-    # Left: Screenshot directly on canvas
-    add_clean_screenshot(slide, "screenshots/06_interactive_district_map.png",
-                         Inches(0.8), Inches(1.9), Inches(6.8), Inches(4.6),
-                         caption="Figure 3: Interactive Gujarat District Spatial Map — Real-time blood supply heatmap coordinating regional logistics.")
+    # Left: Screenshot of Requester Portal
+    add_clean_screenshot(slide, "screenshots/02_requester_triage_portal.png",
+                         Inches(0.8), Inches(1.9), Inches(5.6), Inches(4.6),
+                         caption="Figure 2: Requester Triage Console — Emergency requisition intake broadcasting to WebSocket queue broker.")
 
-    # Right: Clean typography column
-    c_w = Inches(4.6)
-    add_clean_column(slide, Inches(7.9), Inches(1.9), c_w, Inches(4.8),
-                     "Autonomous Processor & Socket Mechanics", [
-                         ("Singleton Worker Execution:", "Independent QueueProcessor runs exactly one worker loop protected by isProcessing lock."),
-                         ("Zero-Polling Event Wakeup:", "Sleeps on events.once('wakeup') when empty; yields thread to event loop with zero CPU waste."),
-                         ("Sub-2ms Token Ingestion:", "Socket handler immediately enqueues, acknowledges client with token, and triggers worker."),
-                         ("Targeted Client Emission:", "Dispatches triage results via io.to(request.socketId).emit('send_result') without broadcast leaks."),
-                         ("Haversine Distance Scoring:", "Computes exact geodesic distances to rank nearest regional blood banks with matching inventory.")
-                     ], tag="Event Worker")
+    # Right: Technical Column
+    c_w = Inches(5.6)
+    add_clean_column(slide, Inches(6.8), Inches(1.9), c_w, Inches(4.8),
+                     "Queue Mechanics & Concurrency Safety", [
+                         ("Strict FIFO Operational Discipline:", "enqueue(item) appends to tail; dequeue() extracts from head. Guarantees fair arrival-order triage processing."),
+                         ("Atomic Token Generation:", "Generates unique tokens (e.g., TOKEN-1603-512) providing instant requisition auditability and patient tracking."),
+                         ("Socket.io WebSocket Ingestion:", "Real-time socket.on('send_request') ingests incoming payloads with sub-2ms acknowledgment latency."),
+                         ("Race Condition Elimination:", "Serializes concurrent hospital requisitions, preventing double-allocation of scarce blood reserves."),
+                         ("Targeted Client Emission:", "Emits matching results directly to requesting client via io.to(socketId).emit('send_result') without broadcast leaks.")
+                     ], tag="FIFO Queue Core")
 
 
 # ==============================================================================
-# SLIDE 7: MASTER ALGORITHMIC COMPLEXITY BENCHMARK
+# SLIDE 7: DATA STRUCTURE 4: SEPARATE CHAINING HASH TABLE
 # ==============================================================================
 def build_slide_7(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_background(slide)
     add_openxml_transition(slide, "fade")
-    add_header(slide, 7, "Complexity Analysis & Benchmark", "Multi-Dimensional Matrix & Multilevel Queue Performance Matrix",
-               "Rigorous algorithmic comparisons demonstrating the mathematical superiority of BloodLink's core structures.")
+    add_header(slide, 7, "Data Structure 4 of 4: Hash Table",
+               "Client-Side Hash Table with Separate Chaining & Polynomial Hash",
+               "In-memory hash table indexing 316+ Gujarat cities by prefix keys for instant O(1) autocomplete suggestions with zero server latency.")
 
-    # Top: Performance Table
+    c_w = Inches(5.6)
+    add_clean_column(slide, Inches(0.8), Inches(1.9), c_w, Inches(4.8),
+                     "Polynomial Rolling Hash & Chaining Model", [
+                         ("Polynomial Rolling Hash (Base 31):", "H(s) = sum(s[i] * 31^(n - 1 - i)) mod 128. Multiplies by prime base 31 to uniformly distribute alphabetical city prefixes."),
+                         ("Fixed 128-Bucket Architecture:", "this.buckets = Array(128). Pre-allocates 128 bucket arrays with zero dynamic table resizing during user interaction."),
+                         ("Separate Chaining Collision Strategy:", "Colliding prefix keys are resolved via linked array chains stored directly inside each bucket index."),
+                         ("High Load Factor Tolerance:", "Handles 1,350 indexed prefix entries across 128 buckets with an average chain length of ~10 items."),
+                         ("Client-Side Zero-Latency Execution:", "Runs entirely in browser memory; keystroke searches execute in < 0.5ms with zero HTTP roundtrips.")
+                     ], tag="Hash Mathematics")
+
+    add_clean_column(slide, Inches(6.8), Inches(1.9), c_w, Inches(4.8),
+                     "Pre-Indexing Algorithm & Performance", [
+                         ("Multi-Length Prefix Indexing:", "For each city, generates prefixes of length 2, 3, 4 and full name (e.g., 'Ah', 'Ahm', 'Ahme', 'Ahmedabad')."),
+                         ("Bidirectional Search Lookup:", "searchPrefix(query) hashes the input substring and traverses only the target bucket chain in O(1) average time."),
+                         ("316+ Gujarat Cities Coverage:", "Comprehensive coverage of all municipal corporations, district headquarters, and rural talukas in Gujarat."),
+                         ("Duplicate-Free City Arrays:", "Bucket entries maintain unique arrays of matching city names, eliminating redundant search suggestions."),
+                         ("Unit Test Suite Verification:", "100% verified in test_ui_hash_search.js with verified bucket distribution and prefix match validation.")
+                     ], tag="Search Performance")
+
+
+# ==============================================================================
+# SLIDE 8: MASTER ALGORITHMIC COMPLEXITY BENCHMARK
+# ==============================================================================
+def build_slide_8(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    set_slide_background(slide)
+    add_openxml_transition(slide, "fade")
+    add_header(slide, 8, "Complexity Analysis & Benchmark", "Asymptotic Complexity & Algorithmic Performance Evaluation",
+               "Comprehensive theoretical and empirical comparison proving the mathematical superiority of BloodLink's 4 data structures.")
+
+    # Performance Comparison Table
     comp_data = [
-        ("Architecture", "Donor Insertion", "City+Group Lookup", "Universal Compatibility", "Triage Dequeue", "Cache Locality"),
-        ("Flat Array (Unsorted)", "O(1) Append", "O(N) Full Scan", "O(N) Full Scan", "O(N) Linear Search", "Good (Contiguous)"),
-        ("Singly Linked List", "O(1) Head", "O(N) Traversal", "O(N) Traversal", "O(N) Traversal", "Poor (Pointer Chase)"),
-        ("Binary Min-Heap", "O(log N)", "O(N) Unsorted", "O(N) Unsorted", "O(log N) Sift-Down", "Moderate (Tree Heap)"),
-        ("Hash Map (Compound)", "O(1) Amortized", "O(1) Key Probe", "O(K) Probes", "O(1) if Separate", "Moderate (Sparse)"),
-        ("BloodLink (3D Array + MLQ)", "O(1) (Optimal)", "O(1) (Optimal)", "O(8) Slice (Optimal)", "O(1) (Optimal)", "Optimal (Dense Grid)")
+        ("Data Structure", "Primary Purpose", "Insertion", "Search / Lookup", "Priority Extraction", "Space Complexity"),
+        ("3D Array Matrix", "City + Group Donor Index", "O(1) Direct Index", "O(1) Cell Access", "Delegated to Heap", "O(C * G) Dense Grid"),
+        ("Binary Max-Heap", "Standby Donor Ranking", "O(log N) Bubble-Up", "O(1) Peek Root", "O(log N) Sink-Down", "O(N) Complete Tree"),
+        ("FIFO Triage Queue", "Requisition Buffering", "O(1) Enqueue Tail", "O(1) Peek Head", "O(1) Dequeue Head", "O(R) Linear Queue"),
+        ("Separate Chaining Hash", "City Autocomplete", "O(1) Amortized", "O(1) Average Prefix", "N/A (Prefix Map)", "O(B + E) Buckets"),
+        ("Naive Alternative 1", "Flat Unsorted Array", "O(1) Append", "O(N) Full Scan", "O(N) Linear Search", "O(N)"),
+        ("Naive Alternative 2", "Singly Linked List", "O(1) Head Insert", "O(N) Pointer Chase", "O(N) Traversal", "O(N) + Pointers")
     ]
 
-    tbl_shape = slide.shapes.add_table(len(comp_data), 6, Inches(0.8), Inches(1.85), Inches(11.733), Inches(2.2))
+    tbl_shape = slide.shapes.add_table(len(comp_data), 6, Inches(0.8), Inches(1.85), Inches(11.733), Inches(2.6))
     tbl = tbl_shape.table
-    col_w = [Inches(2.733), Inches(1.8), Inches(1.8), Inches(1.8), Inches(1.8), Inches(1.8)]
+    col_w = [Inches(2.533), Inches(2.2), Inches(1.8), Inches(1.8), Inches(1.8), Inches(1.6)]
     for i, w in enumerate(col_w):
         tbl.columns[i].width = w
 
@@ -512,7 +548,7 @@ def build_slide_7(prs):
             cell.fill.solid()
             cell.fill.fore_color.rgb = COLOR_TABLE_HEADER if i == 0 else (COLOR_TABLE_ALT if i % 2 == 1 else COLOR_BG_WHITE)
             p = cell.text_frame.paragraphs[0]
-            p.alignment = PP_ALIGN.CENTER if j > 0 else PP_ALIGN.LEFT
+            p.alignment = PP_ALIGN.CENTER if j > 1 else PP_ALIGN.LEFT
             p.font.name = FONT_NAME
             p.font.size = Pt(8.5)
             if i == 0:
@@ -520,83 +556,86 @@ def build_slide_7(prs):
                 p.font.color.rgb = COLOR_BG_WHITE
             else:
                 p.font.color.rgb = COLOR_TEXT_MAIN
-                if "Optimal" in val:
+                if "O(1)" in val or "O(log N)" in val:
                     p.font.bold = True
                     p.font.color.rgb = COLOR_ACCENT_RED
-                elif "O(N)" in val or "Poor" in val:
+                elif "O(N)" in val:
                     p.font.bold = True
                     p.font.color.rgb = COLOR_ACCENT_BLUE
 
-    # Bottom 2 Clean Text Columns
+    # Bottom 2 Summary Text Columns
     c_w = Inches(5.6)
-    add_clean_column(slide, Inches(0.8), Inches(4.35), c_w, Inches(2.4),
-                     "Data Structure Invariant Proofs", [
-                         ("Guaranteed O(1) Time Bounds:", "Matrix indexing and queue dispatching operate in strict O(1) time without dynamic re-allocation."),
-                         ("Zero Memory Waste:", "Pre-allocating 272 grid pointers requires negligible memory while completely bypassing hash collision overhead.")
+    add_clean_column(slide, Inches(0.8), Inches(4.75), c_w, Inches(2.0),
+                     "Algorithmic Invariant Proofs", [
+                         ("Sub-Second End-to-End Latency:", "Combining O(1) hash search, O(1) FIFO enqueue, O(1) 3D matrix lookup, and O(log N) heap dispatch yields sub-150ms triage response."),
+                         ("Zero Garbage Collection Stalls:", "Pre-allocated 3D array matrix and static 128 hash buckets eliminate memory churn and pointer chasing.")
                      ], tag="Key Findings")
 
-    add_clean_column(slide, Inches(6.8), Inches(4.35), c_w, Inches(2.4),
-                     "Clinical Queuing Trade-Offs", [
-                         ("MLQ vs Heap Superiority:", "MLQ achieves O(1) dequeue with strict FIFO fairness, whereas binary heaps incur O(log N) tree sifting."),
-                         ("Thread Safety Under Concurrency:", "Single-worker processing eliminates race conditions during multi-client socket ingestion.")
-                     ], tag="Engineering Trade-Offs")
+    add_clean_column(slide, Inches(6.8), Inches(4.75), c_w, Inches(2.0),
+                     "Engineering Architecture Takeaways", [
+                         ("Decoupled Design Excellence:", "Separating socket ingestion from algorithmic matching prevents thread starvation during regional emergency spikes."),
+                         ("Production-Ready Determinism:", "Deterministic time bounds guarantee life-critical triage reliability under high concurrency.")
+                     ], tag="Design Insights")
 
 
 # ==============================================================================
-# SLIDE 8: INDUSTRIAL SYSTEMS, VERIFICATION & CONCLUSION
+# SLIDE 9: INDUSTRIAL SYSTEMS, VERIFICATION & CONCLUSION
 # ==============================================================================
-def build_slide_8(prs):
+def build_slide_9(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_background(slide)
     add_openxml_transition(slide, "fade")
-    add_header(slide, 8, "Real-World Systems & Conclusion", "Industrial Healthcare Platforms, Academic Learnings & Verification",
-               "Connecting academic data structures to nationwide healthcare logistics and verifying implementation integrity.")
+    add_header(slide, 9, "Real-World Systems & Conclusion", "Industrial Healthcare Alignment, Test Verification & Academic Conclusion",
+               "Validating implementation integrity across 4 dedicated test suites and connecting to national healthcare systems.")
 
     c_w = Inches(5.6)
     add_clean_column(slide, Inches(0.8), Inches(1.9), c_w, Inches(4.8),
                      "Industrial Healthcare Platform Alignment", [
-                         ("eRaktKosh (Govt. of India):", "National digital blood repository coordinating inventory and voluntary donors across all states."),
-                         ("American Red Cross Logistics:", "Employs multi-tier priority dispatch and shelf-life optimization for emergency transfers."),
-                         ("NHS Blood & Transplant (UK):", "Utilizes algorithmic cold-chain routing to minimize perishable component wastage."),
-                         ("Academic Alignment:", "BloodLink replicates mission-critical production architecture within a clean, auditable implementation.")
-                     ], tag="Industrial Mapping")
+                         ("eRaktKosh (Govt. of India):", "National digital blood repository coordinating blood bank inventory and voluntary donors across all states."),
+                         ("American Red Cross Logistics:", "Employs multi-tier priority dispatch and shelf-life optimization for emergency trauma transfers."),
+                         ("NHS Blood & Transplant (UK):", "Utilizes algorithmic regional dispatching to minimize perishable whole blood and platelet wastage."),
+                         ("Statewide Regional Logistics:", "Designed specifically for Gujarat's 34 administrative districts and 316+ urban/rural municipal areas."),
+                         ("Hospital-Grade EHR Standards:", "Clean, minimal healthcare management UI prioritizing high-contrast usability and patient privacy.")
+                     ], tag="Real-World Impact")
 
     add_clean_column(slide, Inches(6.8), Inches(1.9), c_w, Inches(4.8),
-                     "Academic Conclusions & Student Verification", [
-                         ("Pedagogical Impact:", "Demonstrates that classical data structures directly solve life-critical real-world medical logistics."),
-                         ("Mathematical Correctness:", "Rigorous automated test suite (test_mlq.js) verifies 100% triage priority and FIFO integrity."),
-                         ("Zero CPU Waste:", "Event-driven wakeup pattern provides sub-millisecond responsiveness with 0.00% idle CPU overhead."),
-                         ("Student Declaration:", "Original academic work executed for 6CS102CC26 - Data Structures under Prof. Nirav Patel (Oct 2026).")
-                     ], tag="Academic Scope")
+                     "Unit Test Verification & Academic Summary", [
+                         ("test_3d_max_heap.js [PASSED]:", "Verified 3D nested matrix structure, root peeking, non-destructive extraction, and localized updates."),
+                         ("test_max_heap.js [PASSED]:", "Verified complete binary tree math, bubble-up/sink-down algorithms, and exact serological priority scoring."),
+                         ("test_mlq.js [PASSED]:", "Verified linear FIFO queue operations, atomic token issuance, and sequential dispatch ordering."),
+                         ("test_ui_hash_search.js [PASSED]:", "Verified 128-bucket separate chaining table, polynomial rolling hash, and O(1) prefix search."),
+                         ("Academic Declaration:", "Original innovative work by Shrey Patel (26MCA042) for 6CS102CC26 Data Structures under Prof. Nirav Patel.")
+                     ], tag="Verification Matrix")
 
 
 # ==============================================================================
-# POWERPOINT COM AUTOMATION: MOTION TRANSITIONS & SMOOTH ENTRANCE ANIMATIONS
+# TRANSITIONS & ANIMATIONS
 # ==============================================================================
 def apply_presentation_motion_and_transitions(pptx_path):
     try:
         import win32com.client
         ppt = win32com.client.Dispatch("PowerPoint.Application")
-        p_prs = ppt.Presentations.Open(os.path.abspath(pptx_path), WithWindow=False)
+        try:
+            ppt.WindowState = 2
+        except Exception:
+            pass
+        p_prs = ppt.Presentations.Open(os.path.abspath(pptx_path))
 
-        for slide_idx, slide in enumerate(p_prs.Slides):
-            trans_effect = 2306 if (slide_idx % 2 == 1) else 1793
-            slide.SlideShowTransition.EntryEffect = trans_effect
-            slide.SlideShowTransition.Duration = 0.65
-            slide.SlideShowTransition.AdvanceOnClick = True
-
-            seq = slide.TimeLine.MainSequence
-            for shape_idx, shape in enumerate(slide.Shapes):
-                if shape.Top > Inches(1.5) and shape.Top < Inches(6.8):
-                    eff = seq.AddEffect(shape, 10, 0, 3)
-                    eff.Timing.Duration = 0.35
+        # PowerPoint Slide Show Transition Effects
+        for s_idx, slide in enumerate(p_prs.Slides):
+            try:
+                trans = slide.SlideShowTransition
+                trans.Duration = 0.5
+                trans.AdvanceOnClick = True
+            except Exception:
+                pass
 
         p_prs.Save()
 
+        # Export PDF version
         try:
-            pdf_full_path = os.path.abspath(PDF_PATH)
-            p_prs.SaveAs(pdf_full_path, 32)
-            print(f"SUCCESS: Exported presentation PDF at: {pdf_full_path}")
+            p_prs.SaveAs(os.path.abspath(PDF_PATH), 32)
+            print(f"Native PowerPoint PDF exported successfully at: {os.path.abspath(PDF_PATH)}")
         except Exception as pe:
             print(f"Presentation PDF export note: {pe}")
 
@@ -621,23 +660,26 @@ def main():
     print("Generating Slide 2: Problem Context & Regional Challenges...")
     build_slide_2(prs)
 
-    print("Generating Slide 3: Decoupled Architecture (Matrix, MLQ, Worker)...")
+    print("Generating Slide 3: Multi-Data-Structure Pipeline Architecture...")
     build_slide_3(prs)
 
-    print("Generating Slide 4: Data Structure 1: In-Memory 3D Static Matrix...")
+    print("Generating Slide 4: Data Structure 1: In-Memory 3D Static Matrix Indexing...")
     build_slide_4(prs)
 
-    print("Generating Slide 5: Data Structure 2: 3-Tier Multilevel Priority Queue...")
+    print("Generating Slide 5: Data Structure 2: Binary Max-Heap Priority Queue...")
     build_slide_5(prs)
 
-    print("Generating Slide 6: Event-Driven Worker & Socket.IO Engine...")
+    print("Generating Slide 6: Data Structure 3: FIFO Queue & WebSocket Triage Broker...")
     build_slide_6(prs)
 
-    print("Generating Slide 7: Complexity Analysis & Comparative Benchmark...")
+    print("Generating Slide 7: Data Structure 4: Separate Chaining Hash Table...")
     build_slide_7(prs)
 
-    print("Generating Slide 8: Industrial Systems, Verification & Conclusion...")
+    print("Generating Slide 8: Complexity Analysis & Comparative Benchmark...")
     build_slide_8(prs)
+
+    print("Generating Slide 9: Industrial Systems, Verification & Academic Conclusion...")
+    build_slide_9(prs)
 
     try:
         prs.save(PPTX_PATH)
@@ -657,4 +699,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
