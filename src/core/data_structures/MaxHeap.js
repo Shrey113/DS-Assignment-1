@@ -1,15 +1,3 @@
-/**
- * Max-Heap Priority Queue for BloodLink
- * 
- * Used for algorithmic Donor Matching and Emergency Triage.
- * In a Max-Heap, every parent node is >= its children.
- * The highest-priority donor is always at index 0.
- *
- * Array Index Calculations:
- * - Parent: Math.floor((i - 1) / 2)
- * - Left Child: 2 * i + 1
- * - Right Child: 2 * i + 2
- */
 
 export const COMPATIBLE_BLOOD_GROUPS = {
   'O-': ['O-'],
@@ -22,20 +10,12 @@ export const COMPATIBLE_BLOOD_GROUPS = {
   'AB+': ['AB+', 'AB-', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-']
 };
 
-/**
- * Calculates priority score based on:
- * 1. Exact blood group match: +100 points
- * 2. Compatible blood group:  +60 points
- * 3. First-time donor bonus:  +20 points
- */
 export function calculateDonorPriority(donor, requestedBloodGroup) {
   let priority = 0;
 
-  // 1. Exact Match
   if (donor.bloodGroup === requestedBloodGroup) {
     priority += 100;
   }
-  // 2. Compatible Match (e.g. O+ can donate to A+)
   else if (COMPATIBLE_BLOOD_GROUPS[requestedBloodGroup]?.includes(donor.bloodGroup)) {
     priority += 60;
   } else {
