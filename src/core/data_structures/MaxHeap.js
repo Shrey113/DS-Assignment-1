@@ -1,4 +1,4 @@
-
+// Blood Group Compatibility Matrix
 export const COMPATIBLE_BLOOD_GROUPS = {
   'O-': ['O-'],
   'O+': ['O+', 'O-'],
@@ -10,13 +10,13 @@ export const COMPATIBLE_BLOOD_GROUPS = {
   'AB+': ['AB+', 'AB-', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-']
 };
 
+// Priority calculator for donor matching
 export function calculateDonorPriority(donor, requestedBloodGroup) {
   let priority = 0;
 
   if (donor.bloodGroup === requestedBloodGroup) {
     priority += 100;
-  }
-  else if (COMPATIBLE_BLOOD_GROUPS[requestedBloodGroup]?.includes(donor.bloodGroup)) {
+  } else if (COMPATIBLE_BLOOD_GROUPS[requestedBloodGroup]?.includes(donor.bloodGroup)) {
     priority += 60;
   } else {
     return -1;
@@ -29,9 +29,39 @@ export function calculateDonorPriority(donor, requestedBloodGroup) {
   return priority;
 }
 
+/**
+ * Standard Simple Max-Heap
+ * Supports both primitive numbers (e.g., 50, 20) and objects with a .priority property.
+ */
 export class MaxHeap {
   constructor() {
     this.heap = [];
+  }
+
+  // Helper index calculations
+  parentIndex(i) {
+    return Math.floor((i - 1) / 2);
+  }
+
+  leftChildIndex(i) {
+    return 2 * i + 1;
+  }
+
+  rightChildIndex(i) {
+    return 2 * i + 2;
+  }
+
+  // Get numeric value for comparison (number or item.priority)
+  val(item) {
+    if (item === null || item === undefined) return 0;
+    return typeof item === 'object' && item.priority !== undefined ? item.priority : item;
+  }
+
+  // Swap elements at indices i and j
+  swap(i, j) {
+    const temp = this.heap[i];
+    this.heap[i] = this.heap[j];
+    this.heap[j] = temp;
   }
 
   size() {
@@ -43,14 +73,28 @@ export class MaxHeap {
   }
 
   peek() {
-    return this.heap[0] || null;
+    return this.isEmpty() ? null : this.heap[0];
   }
 
+  // Insert element into heap: O(log N)
   insert(item) {
     this.heap.push(item);
     this.bubbleUp(this.heap.length - 1);
   }
 
+  // Bubble up to maintain max-heap property
+  bubbleUp(index) {
+    while (index > 0) {
+      const parent = this.parentIndex(index);
+      if (this.val(this.heap[index]) <= this.val(this.heap[parent])) {
+        break;
+      }
+      this.swap(index, parent);
+      index = parent;
+    }
+  }
+
+  // Remove and return the maximum element: O(log N)
   extractMax() {
     if (this.isEmpty()) return null;
     if (this.heap.length === 1) return this.heap.pop();
@@ -60,12 +104,39 @@ export class MaxHeap {
     this.bubbleDown(0);
     return max;
   }
+
+  // Bubble down to maintain max-heap property
+  bubbleDown(index) {
+    const length = this.heap.length;
+    while (true) {
+      let largest = index;
+      const left = this.leftChildIndex(index);
+      const right = this.rightChildIndex(index);
+
+      if (left < length && this.val(this.heap[left]) > this.val(this.heap[largest])) {
+        largest = left;
+      }
+      if (right < length && this.val(this.heap[right]) > this.val(this.heap[largest])) {
+        largest = right;
+      }
+
+      if (largest === index) {
+        break;
+      }
+
+      this.swap(index, largest);
+      index = largest;
+    }
+  }
+
+  // Clone heap for non-destructive operations
   clone() {
     const copy = new MaxHeap();
-    copy.heap = this.heap.map(item => ({ ...item }));
+    copy.heap = this.heap.map(item => (typeof item === 'object' ? { ...item } : item));
     return copy;
   }
 
+  // Retrieve top K items non-destructively
   getTopK(k = 3) {
     const copy = this.clone();
     const result = [];
@@ -74,54 +145,6 @@ export class MaxHeap {
     }
     return result;
   }
-
-  getAllSorted() {
-    const copy = this.clone();
-    const result = [];
-    while (!copy.isEmpty()) {
-      result.push(copy.extractMax());
-    }
-    return result;
-  }
-
-  // Direct array snapshot
-  toArray() {
-    return [...this.heap];
-  }
-
-  bubbleUp(index) {
-    while (index > 0) {
-      const parentIndex = Math.floor((index - 1) / 2);
-      if (this.heap[index].priority <= this.heap[parentIndex].priority) break;
-
-      // Swap child with parent
-      [this.heap[index], this.heap[parentIndex]] = [this.heap[parentIndex], this.heap[index]];
-      index = parentIndex;
-    }
-  }
-
-  bubbleDown(index) {
-    const length = this.heap.length;
-    while (true) {
-      let largest = index;
-      const leftChild = 2 * index + 1;
-      const rightChild = 2 * index + 2;
-
-      if (leftChild < length && this.heap[leftChild].priority > this.heap[largest].priority) {
-        largest = leftChild;
-      }
-      if (rightChild < length && this.heap[rightChild].priority > this.heap[largest].priority) {
-        largest = rightChild;
-      }
-
-      if (largest === index) break;
-
-      // Swap with largest child
-      [this.heap[index], this.heap[largest]] = [this.heap[largest], this.heap[index]];
-      index = largest;
-    }
-  }
 }
 
 export default MaxHeap;
-
