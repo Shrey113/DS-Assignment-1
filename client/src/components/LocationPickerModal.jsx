@@ -69,7 +69,9 @@ export default function LocationPickerModal({
   initialLatitude,
   initialLongitude,
   onConfirm,
-  onClose
+  onClose,
+  title = "Pinpoint Hospital / Emergency Site on Gujarat Map",
+  subtitle
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -281,10 +283,10 @@ export default function LocationPickerModal({
             </div>
             <div>
               <h3 className="location-modal-heading">
-                Pinpoint Hospital / Emergency Site on Gujarat Map
+                {title}
               </h3>
               <p className="location-modal-sub">
-                {tempCity ? `Selected: ${tempCity} District (Click or drag beacon)` : 'Click anywhere on Gujarat map to place location pin'}
+                {subtitle || (tempCity ? `Selected: ${tempCity} District (Click or drag beacon)` : 'Click anywhere on Gujarat map to place location pin')}
               </p>
             </div>
           </div>

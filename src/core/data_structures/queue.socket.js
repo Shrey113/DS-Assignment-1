@@ -77,7 +77,12 @@ export function setup_queue_socket(io) {
         if (!request) break;
 
         const matchedDepot = await find_nearest_blood_bank(request);
-        const topDonors = donorManager.get_best_3_option(request.city, request.bloodGroup);
+        const topDonors = donorManager.get_best_3_option(
+          request.city,
+          request.bloodGroup,
+          Number(request.latitude) || 23.0225,
+          Number(request.longitude) || 72.5714
+        );
 
         const pool = getPool();
         const [insertResult] = await pool.query(`

@@ -18,7 +18,7 @@ router.post('/add-donors', async (req, res, next) => {
 });
 
 router.get('/best-donors', (req, res) => {
-  const { city, bloodGroup } = req.query;
+  const { city, bloodGroup, latitude, longitude } = req.query;
   if (!city || !bloodGroup) {
     return res.status(400).json({
       success: false,
@@ -26,7 +26,12 @@ router.get('/best-donors', (req, res) => {
     });
   }
 
-  const bestDonors = donorManager.get_best_3_option(city, bloodGroup);
+  const bestDonors = donorManager.get_best_3_option(
+    city,
+    bloodGroup,
+    latitude ? Number(latitude) : null,
+    longitude ? Number(longitude) : null
+  );
   return res.status(200).json({
     success: true,
     dataStructure: 'Nested 3D Array [City][BloodGroup] Binary Max-Heap',

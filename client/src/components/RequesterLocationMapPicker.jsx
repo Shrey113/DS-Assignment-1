@@ -69,7 +69,8 @@ export default function RequesterLocationMapPicker({
   latitude,
   longitude,
   onConfirm,
-  onCancel
+  onCancel,
+  title = "Pinpoint Hospital Location"
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -300,7 +301,7 @@ export default function RequesterLocationMapPicker({
             <ChevronLeft size={18} strokeWidth={2.4} />
           </button>
           <div className="location-pane-title-group">
-            <h3 className="location-pane-title">Pinpoint Hospital Location</h3>
+            <h3 className="location-pane-title">{title}</h3>
             <p className="location-pane-subtitle">
               {tempCity ? `Selected: ${tempCity} District (Click district or drag beacon)` : 'Click anywhere on Gujarat map to place location pin'}
             </p>

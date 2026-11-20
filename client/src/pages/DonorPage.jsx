@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import PortalHeader from '../components/PortalHeader';
-import { AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, Sparkles, CheckCircle2, MapPin } from 'lucide-react';
 import GUJARAT_CITIES from '../constants/gujaratCities';
 import CityAutocompleteInput from '../components/CityAutocompleteInput';
+import RequesterLocationMapPicker from '../components/RequesterLocationMapPicker';
 import { getRandomDonorData } from '../utils/fakeData';
+import '../styles/requester-map.css';
 import {
   validateFullName,
   validateEmail,
@@ -34,6 +36,11 @@ export default function DonorPage() {
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [city, setCity] = useState('');
+  const [address, setAddress] = useState('');
+  const [latitude, setLatitude] = useState(23.0225);
+  const [longitude, setLongitude] = useState(72.5714);
+  const [hasPickedLocation, setHasPickedLocation] = useState(false);
+  const [isMapActive, setIsMapActive] = useState(false);
   const [lastDonationDate, setLastDonationDate] = useState('');
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [availableDays, setAvailableDays] = useState([]);
@@ -51,6 +58,10 @@ export default function DonorPage() {
     setAge(data.age);
     setWeight(data.weight);
     setCity(data.city);
+    setAddress(`${data.city || 'Ahmedabad'}, Gujarat, India`);
+    setLatitude(23.0225 + (Math.random() - 0.5) * 0.08);
+    setLongitude(72.5714 + (Math.random() - 0.5) * 0.08);
+    setHasPickedLocation(true);
     setIsFirstTime(data.isFirstTime);
     setLastDonationDate(data.lastDonationDate);
     setAvailableDays(data.availableDays);
@@ -66,6 +77,11 @@ export default function DonorPage() {
     setAge('');
     setWeight('');
     setCity('');
+    setAddress('');
+    setLatitude(23.0225);
+    setLongitude(72.5714);
+    setHasPickedLocation(false);
+    setIsMapActive(false);
     setLastDonationDate('');
     setIsFirstTime(false);
     setAvailableDays([]);
@@ -125,6 +141,9 @@ export default function DonorPage() {
         age,
         weight,
         city,
+        address: address || `${city || 'Gujarat'}, India`,
+        latitude: Number(latitude) || 23.0225,
+        longitude: Number(longitude) || 72.5714,
         bloodGroup,
         isFirstTime,
         preferredSlot: preferredSlot || 'flexible'
@@ -152,12 +171,13 @@ export default function DonorPage() {
       <main className="donor-split-grid">
 
         <div className="donor-form-side">
-          <div className="donor-form-card">
-
-            <div className="donor-card-top">
-              <h2 className="donor-card-heading">Become a donor<span className="coral-dot">.</span></h2>
-              <p className="donor-card-sub">Your voluntary profile coordinates critical emergency matches.</p>
-            </div>
+          <div className="donor-form-card requester-card-slider-box">
+            <div className={`requester-slider-track ${isMapActive ? 'slide-to-map' : ''}`}>
+              <div className="requester-slide-pane requester-form-pane">
+                <div className="donor-card-top">
+                  <h2 className="donor-card-heading">Become a donor<span className="coral-dot">.</span></h2>
+                  <p className="donor-card-sub">Your voluntary profile coordinates critical emergency matches.</p>
+                </div>
 
             {isRegistered ? (
               <div className="donor-success-state">
@@ -324,6 +344,34 @@ export default function DonorPage() {
                       )}
                     </div>
                   </div>
+
+                  <div className="donor-field-group">
+                    <label className="donor-field-label">Donor Location (GPS)</label>
+                    <button
+                      type="button"
+                      onClick={() => setIsMapActive(true)}
+                      className={`location-picker-trigger-btn ${hasPickedLocation ? 'has-location' : ''}`}
+                    >
+                      <span className="location-trigger-left">
+                        <MapPin size={16} className="location-trigger-icon" />
+                        {hasPickedLocation ? (
+                          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', lineHeight: 1.25 }}>
+                            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1F2937' }}>
+                              {city || 'Pinned Location'}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#4B5563' }}>
+                              {Number(latitude).toFixed(4)}° N, {Number(longitude).toFixed(4)}° E
+                            </span>
+                          </span>
+                        ) : (
+                          <span>Select Location</span>
+                        )}
+                      </span>
+                      <span className="location-trigger-badge">
+                        {hasPickedLocation ? 'Change Pin' : 'Pick on Map ↗'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="donor-form-col donor-col-right">
@@ -455,6 +503,27 @@ export default function DonorPage() {
               </button>
             </form>
           )}
+              </div>
+
+              <div className="requester-slide-pane requester-map-pane">
+                <RequesterLocationMapPicker
+                  isActive={isMapActive}
+                  city={city}
+                  latitude={latitude}
+                  longitude={longitude}
+                  title="Pinpoint Voluntary Donor Location"
+                  onConfirm={({ latitude: newLat, longitude: newLng, city: newCity }) => {
+                    setLatitude(newLat);
+                    setLongitude(newLng);
+                    if (newCity) setCity(newCity);
+                    if (!address) setAddress(`${newCity || city || 'Gujarat'}, India`);
+                    setHasPickedLocation(true);
+                    setIsMapActive(false);
+                  }}
+                  onCancel={() => setIsMapActive(false)}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
