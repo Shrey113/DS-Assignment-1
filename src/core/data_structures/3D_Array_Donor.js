@@ -56,41 +56,15 @@ class DonorManager {
         return this.donors;
     }
 
-    async update_city_blood_group_heap(city, blood_group) {
-        if (!city || !blood_group) return null;
-        const pool = getPool();
-
-        const [rows] = await pool.query(`
-            SELECT id, name, phone, email, age, weight, city, address, latitude, longitude, blood_group, is_first_time, preferred_slot
-            FROM donors
-            WHERE is_active = 1 AND LOWER(city) = LOWER(?) AND blood_group = ?
-        `, [city, blood_group]);
-
-        const newHeap = new MaxHeap();
-        for (const row of rows) {
-            const priority = (row.is_first_time ? 60 : 30) + Math.max(10, 40 - Math.abs((row.age || 25) - 25));
-            newHeap.insert(formatDonor(row, priority));
-        }
+    update_city_blood_group_heap(city, blood_group, reqLat = null, reqLng = null) {
+        if (!city || !blood_group) return new MaxHeap();
 
         const cityKey = Object.keys(this.donors).find(c => c.toLowerCase() === city.toLowerCase()) || city;
-        if (!this.donors[cityKey]) this.donors[cityKey] = {};
-        this.donors[cityKey][blood_group] = newHeap;
+        const baseHeap = this.donors[cityKey]?.[blood_group];
+        const temp = new MaxHeap();
 
-        return newHeap;
-    }
-
-    get_best_3_option(city, blood_group, reqLat = null, reqLng = null) {
-        if (!city || !blood_group) return [];
-
-        const cityKey = Object.keys(this.donors).find(c => c.toLowerCase() === city.toLowerCase()) || city;
-        const cityDepot = this.donors[cityKey];
-        if (!cityDepot) return [];
-
-        const exactHeap = cityDepot[blood_group];
-        const tempHeap = new MaxHeap();
-
-        if (exactHeap && exactHeap.size() > 0) {
-            for (const donor of exactHeap.heap) {
+        if (baseHeap && baseHeap.size() > 0) {
+            for (const donor of baseHeap.heap) {
                 const dist = (reqLat && reqLng && donor.latitude && donor.longitude)
                     ? calculateDistanceKm(reqLat, reqLng, donor.latitude, donor.longitude)
                     : 3.5;
@@ -98,7 +72,7 @@ class DonorManager {
                 const distanceBonus = Math.max(5, 50 - Math.round(dist * 2));
                 const dynamicPriority = 100 + distanceBonus + (donor.isFirstTime ? 20 : 0);
 
-                tempHeap.insert({
+                temp.insert({
                     ...donor,
                     distanceKm: dist,
                     priority: dynamicPriority,
@@ -107,33 +81,23 @@ class DonorManager {
             }
         }
 
-        const topDonors = tempHeap.getTopK(3);
+        return temp;
+    }
 
-        if (topDonors.length < 3) {
+    get_best_3_option(target, blood_group = null, reqLat = null, reqLng = null) {
+        const temp = target instanceof MaxHeap
+            ? target
+            : this.update_city_blood_group_heap(target, blood_group, reqLat, reqLng);
+
+        const topDonors = temp.getTopK(3);
+
+        if (topDonors.length < 3 && typeof target === 'string' && blood_group) {
             const compatible = (COMPATIBLE_BLOOD_GROUPS[blood_group] || []).filter(g => g !== blood_group);
             for (const group of compatible) {
-                const compHeap = cityDepot[group];
-                if (compHeap && compHeap.size() > 0) {
-                    const compTempHeap = new MaxHeap();
-                    for (const donor of compHeap.heap) {
-                        const dist = (reqLat && reqLng && donor.latitude && donor.longitude)
-                            ? calculateDistanceKm(reqLat, reqLng, donor.latitude, donor.longitude)
-                            : 6.0;
-
-                        const distanceBonus = Math.max(5, 50 - Math.round(dist * 2));
-                        const dynamicPriority = 60 + distanceBonus + (donor.isFirstTime ? 20 : 0);
-
-                        compTempHeap.insert({
-                            ...donor,
-                            distanceKm: dist,
-                            priority: dynamicPriority,
-                            matchType: 'COMPATIBLE'
-                        });
-                    }
-
-                    const needed = 3 - topDonors.length;
-                    topDonors.push(...compTempHeap.getTopK(needed));
-                }
+                const compTemp = this.update_city_blood_group_heap(target, group, reqLat, reqLng);
+                const needed = 3 - topDonors.length;
+                const compDonors = compTemp.getTopK(needed).map(d => ({ ...d, matchType: 'COMPATIBLE' }));
+                topDonors.push(...compDonors);
                 if (topDonors.length >= 3) break;
             }
         }
@@ -166,16 +130,22 @@ class DonorManager {
             donor.preferredSlot || 'flexible'
         ]);
 
-        const updatedHeap = await this.update_city_blood_group_heap(donor.city, donor.bloodGroup);
+        const cityKey = Object.keys(this.donors).find(c => c.toLowerCase() === donor.city.toLowerCase()) || donor.city;
+        if (!this.donors[cityKey]) this.donors[cityKey] = {};
+        if (!this.donors[cityKey][donor.bloodGroup]) this.donors[cityKey][donor.bloodGroup] = new MaxHeap();
+
+        const priority = (donor.isFirstTime ? 60 : 30) + Math.max(10, 40 - Math.abs((donor.age || 25) - 25));
+        const formatted = formatDonor({ ...donor, id: result.insertId }, priority);
+        this.donors[cityKey][donor.bloodGroup].insert(formatted);
 
         return {
             id: result.insertId,
             city: donor.city,
-            address: donor.address || `${donor.city || 'Gujarat'}, India`,
-            latitude: Number(donor.latitude) || 23.0225,
-            longitude: Number(donor.longitude) || 72.5714,
+            address: formatted.address,
+            latitude: formatted.latitude,
+            longitude: formatted.longitude,
             bloodGroup: donor.bloodGroup,
-            heapSize: updatedHeap ? updatedHeap.size() : 0
+            heapSize: this.donors[cityKey][donor.bloodGroup].size()
         };
     }
 
