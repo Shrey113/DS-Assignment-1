@@ -3,7 +3,6 @@ export class MaxHeap {
     this.heap = [];
   }
 
-  // Get numeric value for comparison (number or item.priority)
   val(item) {
     if (item === null || item === undefined) return 0;
     return typeof item === 'object' && item.priority !== undefined ? item.priority : item;
@@ -21,7 +20,6 @@ export class MaxHeap {
     return this.isEmpty() ? null : this.heap[0];
   }
 
-  // Add item into heap
   add(item) {
     this.heap.push(item);
     let index = this.heap.length - 1;
@@ -43,7 +41,6 @@ export class MaxHeap {
     return this.add(item);
   }
 
-  // Remove and return the maximum item
   remove() {
     if (this.isEmpty()) return null;
     if (this.heap.length === 1) return this.heap.pop();
@@ -81,14 +78,12 @@ export class MaxHeap {
     return this.remove();
   }
 
-  // Clone heap for non-destructive operations
   clone() {
     const copy = new MaxHeap();
     copy.heap = this.heap.map(item => (typeof item === 'object' ? { ...item } : item));
     return copy;
   }
 
-  // Retrieve top K items non-destructively
   getTopK(k = 3) {
     const copy = this.clone();
     const result = [];
