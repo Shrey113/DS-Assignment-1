@@ -86,7 +86,6 @@ class DonorManager {
         const cityDepot = this.donors[cityKey];
         if (!cityDepot) return [];
 
-        // 1. Temporary MaxHeap for Exact Match ranked by Location + Clinical Score
         const exactHeap = cityDepot[blood_group];
         const tempHeap = new MaxHeap();
 
@@ -96,7 +95,6 @@ class DonorManager {
                     ? calculateDistanceKm(reqLat, reqLng, donor.latitude, donor.longitude)
                     : 3.5;
 
-                // Priority: Exact match base 100 + closer distance bonus + first-time bonus
                 const distanceBonus = Math.max(5, 50 - Math.round(dist * 2));
                 const dynamicPriority = 100 + distanceBonus + (donor.isFirstTime ? 20 : 0);
 
@@ -111,7 +109,6 @@ class DonorManager {
 
         const topDonors = tempHeap.getTopK(3);
 
-        // 2. Fallback to Compatible Blood Groups if fewer than 3 exact donors found
         if (topDonors.length < 3) {
             const compatible = (COMPATIBLE_BLOOD_GROUPS[blood_group] || []).filter(g => g !== blood_group);
             for (const group of compatible) {
