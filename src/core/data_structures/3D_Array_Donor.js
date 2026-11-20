@@ -1,5 +1,5 @@
 import { getPool } from '../../config/db.js';
-import { MaxHeap, COMPATIBLE_BLOOD_GROUPS } from './MaxHeap.js';
+import { MaxHeap } from './MaxHeap.js';
 
 function calculateDistanceKm(lat1, lon1, lat2, lon2) {
     const p = Math.PI / 180;
@@ -57,26 +57,20 @@ class DonorManager {
     }
 
     update_city_blood_group_heap(city, blood_group, reqLat = null, reqLng = null) {
-        if (!city || !blood_group) return new MaxHeap();
-
-        const cityKey = Object.keys(this.donors).find(c => c.toLowerCase() === city.toLowerCase()) || city;
+        const cityKey = Object.keys(this.donors).find(c => c.toLowerCase() === (city || '').toLowerCase()) || city;
         const baseHeap = this.donors[cityKey]?.[blood_group];
         const temp = new MaxHeap();
 
-        if (baseHeap && baseHeap.size() > 0) {
+        if (baseHeap) {
             for (const donor of baseHeap.heap) {
                 const dist = (reqLat && reqLng && donor.latitude && donor.longitude)
                     ? calculateDistanceKm(reqLat, reqLng, donor.latitude, donor.longitude)
                     : 3.5;
 
-                const distanceBonus = Math.max(5, 50 - Math.round(dist * 2));
-                const dynamicPriority = 100 + distanceBonus + (donor.isFirstTime ? 20 : 0);
-
                 temp.insert({
                     ...donor,
                     distanceKm: dist,
-                    priority: dynamicPriority,
-                    matchType: 'EXACT'
+                    priority: 100 - Math.round(dist * 2) + (donor.isFirstTime ? 20 : 0)
                 });
             }
         }
@@ -84,29 +78,9 @@ class DonorManager {
         return temp;
     }
 
-    get_best_3_option(target, blood_group = null, reqLat = null, reqLng = null) {
-        const temp = target instanceof MaxHeap
-            ? target
-            : this.update_city_blood_group_heap(target, blood_group, reqLat, reqLng);
-
-        const topDonors = temp.getTopK(3);
-
-        if (topDonors.length < 3 && typeof target === 'string' && blood_group) {
-            const compatible = (COMPATIBLE_BLOOD_GROUPS[blood_group] || []).filter(g => g !== blood_group);
-            for (const group of compatible) {
-                const compTemp = this.update_city_blood_group_heap(target, group, reqLat, reqLng);
-                const needed = 3 - topDonors.length;
-                const compDonors = compTemp.getTopK(needed).map(d => ({ ...d, matchType: 'COMPATIBLE' }));
-                topDonors.push(...compDonors);
-                if (topDonors.length >= 3) break;
-            }
-        }
-
-        return topDonors.slice(0, 3).map((donor, idx) => ({
-            ...donor,
-            rank: idx + 1,
-            isPriority: idx === 0
-        }));
+    get_best_3_option(city, blood_group, reqLat = null, reqLng = null) {
+        const temp = city?.getTopK ? city : this.update_city_blood_group_heap(city, blood_group, reqLat, reqLng);
+        return temp.getTopK(3);
     }
 
     async add_donors(donor) {
