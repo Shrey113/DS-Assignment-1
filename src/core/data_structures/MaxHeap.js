@@ -1,36 +1,12 @@
-/**
- * Standard Simple Max-Heap
- * Supports both primitive numbers (e.g., 50, 20) and objects with a .priority property.
- */
 export class MaxHeap {
   constructor() {
     this.heap = [];
-  }
-
-  // Helper index calculations
-  parentIndex(i) {
-    return Math.floor((i - 1) / 2);
-  }
-
-  leftChildIndex(i) {
-    return 2 * i + 1;
-  }
-
-  rightChildIndex(i) {
-    return 2 * i + 2;
   }
 
   // Get numeric value for comparison (number or item.priority)
   val(item) {
     if (item === null || item === undefined) return 0;
     return typeof item === 'object' && item.priority !== undefined ? item.priority : item;
-  }
-
-  // Swap elements at indices i and j
-  swap(i, j) {
-    const temp = this.heap[i];
-    this.heap[i] = this.heap[j];
-    this.heap[j] = temp;
   }
 
   size() {
@@ -45,42 +21,43 @@ export class MaxHeap {
     return this.isEmpty() ? null : this.heap[0];
   }
 
-  // Insert element into heap: O(log N)
-  insert(item) {
+  // Add item into heap
+  add(item) {
     this.heap.push(item);
-    this.bubbleUp(this.heap.length - 1);
-  }
+    let index = this.heap.length - 1;
 
-  // Bubble up to maintain max-heap property
-  bubbleUp(index) {
     while (index > 0) {
-      const parent = this.parentIndex(index);
-      if (this.val(this.heap[index]) <= this.val(this.heap[parent])) {
-        break;
-      }
-      this.swap(index, parent);
+      const parent = Math.floor((index - 1) / 2);
+      if (this.val(this.heap[index]) <= this.val(this.heap[parent])) break;
+
+      const temp = this.heap[index];
+      this.heap[index] = this.heap[parent];
+      this.heap[parent] = temp;
       index = parent;
     }
+
+    return item;
   }
 
-  // Remove and return the maximum element: O(log N)
-  extractMax() {
+  insert(item) {
+    return this.add(item);
+  }
+
+  // Remove and return the maximum item
+  remove() {
     if (this.isEmpty()) return null;
     if (this.heap.length === 1) return this.heap.pop();
 
     const max = this.heap[0];
     this.heap[0] = this.heap.pop();
-    this.bubbleDown(0);
-    return max;
-  }
 
-  // Bubble down to maintain max-heap property
-  bubbleDown(index) {
+    let index = 0;
     const length = this.heap.length;
+
     while (true) {
       let largest = index;
-      const left = this.leftChildIndex(index);
-      const right = this.rightChildIndex(index);
+      const left = 2 * index + 1;
+      const right = 2 * index + 2;
 
       if (left < length && this.val(this.heap[left]) > this.val(this.heap[largest])) {
         largest = left;
@@ -89,13 +66,19 @@ export class MaxHeap {
         largest = right;
       }
 
-      if (largest === index) {
-        break;
-      }
+      if (largest === index) break;
 
-      this.swap(index, largest);
+      const temp = this.heap[index];
+      this.heap[index] = this.heap[largest];
+      this.heap[largest] = temp;
       index = largest;
     }
+
+    return max;
+  }
+
+  extractMax() {
+    return this.remove();
   }
 
   // Clone heap for non-destructive operations
@@ -110,7 +93,7 @@ export class MaxHeap {
     const copy = this.clone();
     const result = [];
     while (!copy.isEmpty() && result.length < k) {
-      result.push(copy.extractMax());
+      result.push(copy.remove());
     }
     return result;
   }
