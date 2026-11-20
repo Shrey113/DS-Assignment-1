@@ -1,4 +1,31 @@
-import { MaxHeap, COMPATIBLE_BLOOD_GROUPS, calculateDonorPriority } from '../src/core/data_structures/MaxHeap.js';
+import { MaxHeap } from '../src/core/data_structures/MaxHeap.js';
+
+// Blood Group Compatibility Matrix (test helper)
+const COMPATIBLE_BLOOD_GROUPS = {
+  'O-': ['O-'],
+  'O+': ['O+', 'O-'],
+  'A-': ['A-', 'O-'],
+  'A+': ['A+', 'A-', 'O+', 'O-'],
+  'B-': ['B-', 'O-'],
+  'B+': ['B+', 'B-', 'O+', 'O-'],
+  'AB-': ['AB-', 'A-', 'B-', 'O-'],
+  'AB+': ['AB+', 'AB-', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-']
+};
+
+function calculateDonorPriority(donor, requestedBloodGroup) {
+  let priority = 0;
+  if (donor.bloodGroup === requestedBloodGroup) {
+    priority += 100;
+  } else if (COMPATIBLE_BLOOD_GROUPS[requestedBloodGroup]?.includes(donor.bloodGroup)) {
+    priority += 60;
+  } else {
+    return -1;
+  }
+  if (donor.isFirstTime) {
+    priority += 20;
+  }
+  return priority;
+}
 
 console.log('================================================================');
 console.log('TEST SUITE: Max-Heap Priority Queue & Donor Matching Verification');

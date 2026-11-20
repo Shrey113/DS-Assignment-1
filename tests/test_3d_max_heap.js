@@ -1,4 +1,4 @@
-import { MaxHeap, COMPATIBLE_BLOOD_GROUPS } from '../src/core/data_structures/MaxHeap.js';
+import { MaxHeap } from '../src/core/data_structures/MaxHeap.js';
 
 console.log('================================================================');
 console.log('TEST SUITE: 3D Array [City][BloodGroup] Nested Max-Heap Matrix');
